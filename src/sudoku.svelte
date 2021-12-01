@@ -32,12 +32,89 @@
             
         }
 
+        GetPossibleValues(inPos, inGrid) {
+            const [x,y] = this.GetCoord(inPos);
+            let possibleValues = new Set([1,2,3,4,5,6,7,8,9]);
+            for(let xi = x - 3; xi < x + 3; xi++) {
+                for(let yi = y - 3; yi < y + 3; yi++) {
+                    let posi = this.GetPos(xi, yi);
+                    if(this.IsInBlock(inPos, posi)) {
+                        const val = inGrid[posi];
+                        if(val !== 0) {
+                            possibleValues.delete(val)
+                        }
+                    }
+                }
+            }
+            for(let xi = 0; xi < this._SUDOKU_SIZE; xi++) {
+                const posi = this.GetPos(xi, y);
+                const val = inGrid[posi];
+                if(val !== 0) {
+                    possibleValues.delete(val)
+                }
+                
+            }
+        
+            for(let yi = 0; yi < this._SUDOKU_SIZE; yi++) {
+                const posi = this.GetPos(x, yi);
+                const val = inGrid[posi];
+                if(val !== 0) {
+                    possibleValues.delete(val)
+                }
+            }
+
+            return possibleValues;
+        }
+
+        Reset() {
+            for(let i = 0; i < this._data.length; ++i) 
+                this._data[i] = 0;
+        }
+
+        SetGrid(inGrid) {
+            this._data = inGrid;
+        }
+
+        Solve(inGrid, callback) {
+            return new Promise((resolve, reject) => {
+
+                let finalGrid = inGrid;
+                let stack = []
+                stack.push([inGrid.slice(), 0, 0]);
+                let isDone = false;
+                while(stack.length > 0 && !isDone) {
+                    let [grid,start,indexValue] = stack.pop()
+                    let i = 0;
+                    for(i = start; i < grid.length; ++i) {
+                        if(grid[i] !== 0) continue;
+                        let possibleValues = this.GetPossibleValues(i, grid);
+
+                        if(possibleValues.size > indexValue) {
+                            grid[i] = Array.from(possibleValues)[indexValue];
+                            stack.push([grid.slice(), i, ++indexValue]);
+                            indexValue = 0;
+                        }
+                        else {
+                            break;
+                        }
+                    }
+                    isDone = (i === grid.length);
+                    if(isDone) {
+                        finalGrid = grid;
+                    }
+                }
+                resolve([isDone, finalGrid])
+            });
+
+        }
+
         IsInBlock(currentBlock, inPos) {
             return (parseInt(inPos/3)%3 == parseInt(currentBlock/3)%3) && (parseInt(inPos/27) == parseInt(currentBlock/27));
         }
 
         Generate() {
-            console.log("Generate")
+            console.log("Generate");
+            this.Reset();
             function getRandomInt(min, max) {
                 min = Math.ceil(min);
                 max = Math.floor(max);
@@ -45,43 +122,14 @@
                 return random;
             }
 
-            const numberOfIteration = this._SUDOKU_SIZE*this._SUDOKU_SIZE-1;
+            const numberOfIteration = (this._SUDOKU_SIZE*this._SUDOKU_SIZE-1)/8;
             for(let i = 0; i < numberOfIteration; i++) {
 
                 const pos = getRandomInt(0, this._SUDOKU_SIZE*this._SUDOKU_SIZE)
                 if(this._data[pos] !== 0) continue;
 
-                const [x,y] = this.GetCoord(pos);
-                let possibleValues = new Set([1,2,3,4,5,6,7,8,9]);
-                for(let xi = x - 3; xi < x + 3; xi++) {
-                    for(let yi = y - 3; yi < y + 3; yi++) {
-                        let posi = this.GetPos(xi, yi);
-                        if(this.IsInBlock(pos, posi)) {
-                            const val = this._data[posi];
-                            if(val !== 0) {
-                                possibleValues.delete(val)
-                            }
-                        }
-                    }
-                }
-
-                for(let xi = 0; xi < this._SUDOKU_SIZE; xi++) {
-                    const posi = this.GetPos(xi, y);
-                    const val = this._data[posi];
-                    if(val !== 0) {
-                        possibleValues.delete(val)
-                    }
-                    
-                }
-            
-                for(let yi = 0; yi < this._SUDOKU_SIZE; yi++) {
-                    const posi = this.GetPos(x, yi);
-
-                    const val = this._data[posi];
-                    if(val !== 0) {
-                        possibleValues.delete(val)
-                    }
-                }
+                let possibleValues = this.GetPossibleValues(pos, this._data)
+               
                 if(possibleValues.size > 0) {
                     const items = Array.from(possibleValues);
                     this._data[pos] = items[getRandomInt(0, items.length)]
@@ -106,6 +154,16 @@
         data = sudoku.GetGrid();
     }
 
+    async function Solve() {
+        sudoku.Solve(sudoku.GetGrid(), (inGrid) => {console.log(inGrid);data = inGrid}).then(([done, grid]) => {
+            if(done) {
+            sudoku.SetGrid(grid);
+            data = sudoku.GetGrid();
+        }
+        });        
+
+    }
+
     export function hover(elementPos) {
         console.log(elementPos)
         if(currentElementSelected == elementPos -1)
@@ -120,6 +178,7 @@
 </script>
 
 <button class="button" on:click={Generate}>Generate</button>
+<button class="button" on:click={Solve}>Solve</button>
 
 <div class="container">
     <div class="sudoku_board">
