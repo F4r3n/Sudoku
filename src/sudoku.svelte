@@ -1,16 +1,18 @@
 <script>
-
+    export let possibleValues = []
+    export let currentElementHovered = -1;
     export let currentElementSelected = -1;
-    export let numpadDisplayed;
     export let data;
     class Sudoku {
 
         constructor() {
             this._SUDOKU_SIZE=9;
-            this._data = new Array(this._SUDOKU_SIZE*this._SUDOKU_SIZE);
+            this._data = new Uint8Array(this._SUDOKU_SIZE*this._SUDOKU_SIZE);
+            this._gridCoord = null
         }
 
         Init() {
+            this._gridCoord = this._CreateCoordGrid()
             for(let i = 0; i < this._data.length; i++) {
                 this._data[i] = 0;
             }
@@ -33,24 +35,26 @@
         }
 
         GetPossibleValues(inPos, inGrid) {
+
             const [x,y] = this.GetCoord(inPos);
-            let possibleValues = new Set([1,2,3,4,5,6,7,8,9]);
+            let possibleValues = [1,2,3,4,5,6,7,8,9];
             for(let xi = x - 3; xi < x + 3; xi++) {
                 for(let yi = y - 3; yi < y + 3; yi++) {
                     let posi = this.GetPos(xi, yi);
                     if(this.IsInBlock(inPos, posi)) {
                         const val = inGrid[posi];
                         if(val !== 0) {
-                            possibleValues.delete(val)
+                            possibleValues[val - 1] = 0
                         }
                     }
                 }
             }
+
             for(let xi = 0; xi < this._SUDOKU_SIZE; xi++) {
                 const posi = this.GetPos(xi, y);
                 const val = inGrid[posi];
                 if(val !== 0) {
-                    possibleValues.delete(val)
+                    possibleValues[val - 1] = 0
                 }
                 
             }
@@ -59,11 +63,10 @@
                 const posi = this.GetPos(x, yi);
                 const val = inGrid[posi];
                 if(val !== 0) {
-                    possibleValues.delete(val)
+                    possibleValues[val - 1] = 0
                 }
             }
-
-            return possibleValues;
+            return possibleValues.filter((x) => {return x !== 0;});
         }
 
         Reset() {
@@ -73,6 +76,14 @@
 
         SetGrid(inGrid) {
             this._data = inGrid;
+        }
+
+        _CreateCoordGrid() {
+            let data = new Uint8Array(this._SUDOKU_SIZE*this._SUDOKU_SIZE);
+            for(let i = 0; i < data.length; ++i) {
+                data[i] = parseInt(i/3)%3 + parseInt(i/27)*3
+            }
+            return data;
         }
 
         Solve(inGrid, callback) {
@@ -88,10 +99,11 @@
                     for(i = start; i < grid.length; ++i) {
                         if(grid[i] !== 0) continue;
                         let possibleValues = this.GetPossibleValues(i, grid);
-
-                        if(possibleValues.size > indexValue) {
-                            grid[i] = Array.from(possibleValues)[indexValue];
-                            stack.push([grid.slice(), i, ++indexValue]);
+                        
+                        if(possibleValues.length > indexValue) {
+                            grid[i] = possibleValues[indexValue];
+                            if(possibleValues.length > 1)
+                                stack.push([grid.slice(), i, ++indexValue]);
                             indexValue = 0;
                         }
                         else {
@@ -109,7 +121,7 @@
         }
 
         IsInBlock(currentBlock, inPos) {
-            return (parseInt(inPos/3)%3 == parseInt(currentBlock/3)%3) && (parseInt(inPos/27) == parseInt(currentBlock/27));
+            return this._gridCoord[currentBlock] === this._gridCoord[inPos];
         }
 
         Generate() {
@@ -128,11 +140,10 @@
                 const pos = getRandomInt(0, this._SUDOKU_SIZE*this._SUDOKU_SIZE)
                 if(this._data[pos] !== 0) continue;
 
-                let possibleValues = this.GetPossibleValues(pos, this._data)
-               
-                if(possibleValues.size > 0) {
-                    const items = Array.from(possibleValues);
-                    this._data[pos] = items[getRandomInt(0, items.length)]
+                const possibleValues = this.GetPossibleValues(pos, this._data)
+
+                if(possibleValues.length > 0) {
+                    this._data[pos] = possibleValues[getRandomInt(0, possibleValues.length)]
                 }
 
             }
@@ -141,12 +152,11 @@
 
     function displayNumpad(element) {
         currentElementSelected = element.target.getAttribute("pos");
-        numpadDisplayed = true;
     }
 
     function mouseOver(element) {
-        if(!numpadDisplayed)
-            currentElementSelected = element.target.getAttribute("pos");
+        currentElementHovered = element.target.getAttribute("pos");
+        possibleValues = sudoku.GetPossibleValues(currentElementHovered, sudoku.GetGrid());
     }
 
     function Generate() {
@@ -157,68 +167,88 @@
     async function Solve() {
         sudoku.Solve(sudoku.GetGrid(), (inGrid) => {console.log(inGrid);data = inGrid}).then(([done, grid]) => {
             if(done) {
-            sudoku.SetGrid(grid);
-            data = sudoku.GetGrid();
-        }
+                sudoku.SetGrid(grid);
+                data = sudoku.GetGrid();
+            }
+            else {
+                console.log("No solution")
+            }
         });        
 
     }
 
-    export function hover(elementPos) {
-        console.log(elementPos)
-        if(currentElementSelected == elementPos -1)
-            return true;
-        return false;
+    function setValue(inV) {
+        sudoku.GetGrid()[currentElementSelected] = inV
+        data = sudoku.GetGrid();
     }
 
     export let sudoku = new Sudoku()
     sudoku.Init()
     data = sudoku.GetGrid();
-    numpadDisplayed = false
 </script>
-
-<button class="button" on:click={Generate}>Generate</button>
-<button class="button" on:click={Solve}>Solve</button>
+<div class="mainMenu">
+    <button class="button" on:click={Generate}>Generate</button>
+    <button class="button" on:click={Solve}>Solve</button>
+</div>
 
 <div class="container">
     <div class="sudoku_board">
         {#each data as block, i}
-        <div class="{currentElementSelected==i 
-        || ((parseInt(i/3)%3 == parseInt(currentElementSelected/3)%3) && parseInt(i/27) == parseInt(currentElementSelected/27))
-        || i%9 == currentElementSelected%9
-        || parseInt(i/9, 10) == parseInt(currentElementSelected/9,10) ? 'cell cell_hover' : 'cell'}" pos={i} on:click={displayNumpad} on:mouseover={mouseOver} bind:this={currentElementSelected}>
+        <div class="{currentElementHovered==i 
+        || ((parseInt(i/3)%3 == parseInt(currentElementHovered/3)%3) && parseInt(i/27) == parseInt(currentElementHovered/27))
+        || i%9 == currentElementHovered%9
+        || parseInt(i/9, 10) == parseInt(currentElementHovered/9,10) ? 'cell cell_hover' : 'cell'}" 
+        class:cell_selected="{currentElementSelected==i}"
+        pos={i} on:click={displayNumpad} on:mouseover={mouseOver} bind:this={currentElementHovered}>
             {block == 0 ? '' :  block}
         </div>
         {/each}
     </div>
     
-    {#if numpadDisplayed}
-        <div class="numpad">
-            <div class="number border">1</div>
-            <div class="number border">2</div>
-            <div class="number border">3</div>
-            <div class="number border">4</div>
-            <div class="number border">5</div>
-            <div class="number border">6</div>
-            <div class="number border">7</div>
-            <div class="number border">8</div>
-            <div class="number border">9</div>
-            <div class="number">N</div>
-            <div class="number"></div>
-            <div class="number">Y</div>
+        <div class="pad">
+            <div class="numpad">
+                {#each [1,2,3,4,5,6,7,8,9] as i}
+                <div class="number border" on:click={() => {setValue(i)}}>{i}</div>
+                {/each}
+            </div>
+
+
+            <div class="number" on:click={() => {setValue(0)}}>Clear</div>
+            <div class ="possibleValues">{possibleValues}</div>
         </div>
-    {/if}
+        
+ 
+
 </div>
 
 
 <style>
     .container {
-        position: relative;
+        width: fit-content;
+
+        display: flex;
+        margin: auto;
     }
 
+    .button {
+        background-color:var(--main-color-light); /* Green */
+        border: none;
+        color: white;
+        padding: 15px 32px;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+        font-size: 16px;
+    }
 
-    .sudoku_board {
+    .mainMenu {
+        justify-content: center;
+        align-items: center;
         margin: auto;
+        width: fit-content;
+        padding-bottom: 1%;
+    }
+    .sudoku_board {
         width: fit-content;
         overflow: hidden;
   
@@ -241,6 +271,11 @@
 
     .cell_hover {
         background:rgb(239, 240, 199) !important;
+    }
+
+    .cell_selected {
+        background: var(--main-color-light) !important;
+        color:white;
     }
 
     .cell {
@@ -286,7 +321,12 @@
         border-top: 2px solid black;
     }
 
+    .pad {
+
+    }
+
     .numpad {
+        height: fit-content;
         width: fit-content;
         overflow: hidden;
   
@@ -297,11 +337,6 @@
 
         background-color: black;
         opacity: 0.9;
-        left:45%;
-        top:45%;
-        justify-content: center;
-        position: absolute;
-        z-index: 9;
         display: grid;
 
         grid-template-columns: repeat(3, 3em);
@@ -312,16 +347,18 @@
     }
 
     .number {
+        text-align: center;
         font-size: xx-large;
         opacity: 1.0;
         background: grey;
         justify-content: center;
         align-items: center;
-        display: flex;
         color:rgb(226, 226, 226);
     }
 
-
+    .possibleValues {
+        color:var(--main-color-light)
+    }
     .border{
         -webkit-box-sizing: border-box; /* Safari/Chrome, other WebKit */
 	    -moz-box-sizing: border-box;    /* Firefox, other Gecko */
