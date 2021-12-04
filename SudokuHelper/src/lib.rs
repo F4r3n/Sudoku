@@ -35,7 +35,7 @@ fn get_coord(in_pos : usize) -> (i8, i8) {
     return ((in_pos%SUDOKU_SIZE) as i8, (in_pos/SUDOKU_SIZE) as i8);
 }
 
-pub fn get_possible_values(in_pos : usize, in_grid : &Vec::<u8>, in_grid_block : &Vec::<u8>) -> Vec::<u8> {
+pub fn get_possible_values(in_pos : usize, in_grid : &Vec::<u8>, in_grid_block : &[u8]) -> Vec::<u8> {
 
     let (x,y) = get_coord(in_pos);
     let mut possible_values = vec![1,2,3,4,5,6,7,8,9];
@@ -83,40 +83,42 @@ pub fn get_possible_values(in_pos : usize, in_grid : &Vec::<u8>, in_grid_block :
 
 #[wasm_bindgen]
 pub struct ExportedResults {
-    pub isDone: bool,
+    pub is_done: bool,
 }
 
 #[wasm_bindgen]
-pub fn return_named_struct(isDone: bool) -> ExportedResults {
-    ExportedResults { isDone }
+pub fn return_named_struct(is_done: bool) -> ExportedResults {
+    ExportedResults { is_done }
 }
 
 #[wasm_bindgen]
 pub fn solve(in_grid : js_sys::Uint8Array, in_grid_coordinates : js_sys::Uint8Array, exported : &mut ExportedResults) -> js_sys::Uint8Array {
     let grid_coordinates = in_grid_coordinates.to_vec();
 
-    let mut stack = Vec::<(Vec::<u8>, usize, usize)>::new();
+    let mut stack = Vec::<(i16, usize, usize)>::new();
     let mut final_grid = in_grid.to_vec();
-    let mut isDone = false;
-    stack.push((in_grid.to_vec(), 0, 0));
+    let mut grid = in_grid.to_vec();
+
+    let mut is_done = false;
+
+    stack.push((-1, 0, 0));
     
-    while stack.len() > 0 && !isDone {
-        let (grid,start,index_value) = stack.pop().unwrap();
-        let mut temp_grid = grid;
+    while stack.len() > 0 && !is_done {
+        let (value,start,index_value) = stack.pop().unwrap();
         let mut temp_index_value = index_value;
         let mut i : usize = start;
-        while i < temp_grid.len() {
-            if temp_grid[i] == 0 {
-                let possible_values = get_possible_values(i, &temp_grid, &grid_coordinates);
+        if value >= 0 {
+            grid[start] = value as u8;
+        }
+
+        for (pos, value_it) in grid[start..].iter().enumerate() {
+            if *value_it == 0 {
+                let possible_values = get_possible_values(pos, &grid, &grid_coordinates);
 
                 if possible_values.len() > temp_index_value {
-                    temp_grid[i] = possible_values[temp_index_value];
-                    if possible_values.len() > 1 {
                         temp_index_value+=1;
-                        stack.push((temp_grid.to_vec(), i, temp_index_value));
-                    }
-
-                    temp_index_value = 0;
+                        stack.push((possible_values[temp_index_value] as i16, pos, temp_index_value));
+                        temp_index_value = 0;
                 }
                 else {
                     break;
@@ -125,12 +127,12 @@ pub fn solve(in_grid : js_sys::Uint8Array, in_grid_coordinates : js_sys::Uint8Ar
             i+=1;
         }
 
-        isDone = i == temp_grid.len();
-        if isDone {
-            final_grid = temp_grid.to_vec();
+        is_done = i == final_grid.len();
+        if is_done {
+            final_grid = final_grid.to_vec();
         }
     }
-    exported.isDone = isDone;
+    exported.is_done = is_done;
 
     return js_sys::Uint8Array::from(&final_grid[..]); 
 }
