@@ -9,7 +9,7 @@ jobs:
       - name: Setup Node.js environment
         uses: actions/setup-node@v2.5.0
 
-       - name: Install latest rust
+      - name: Install latest rust
         uses: actions-rs/toolchain@v1
         with:
             toolchain: stable
