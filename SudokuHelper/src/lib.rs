@@ -16,11 +16,6 @@ macro_rules! log {
  static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
  static SUDOKU_SIZE: usize = 9;
 
- #[wasm_bindgen]
- pub fn greet() -> String {
-     "Hello, wasm-game-of-life!".into()
-}
-
 fn is_in_block(current_block : usize, in_pos : usize, in_grid_block : &[u8]) -> bool{
     return (in_pos < in_grid_block.len())
      && (current_block < in_grid_block.len())
@@ -99,11 +94,11 @@ pub fn solve(in_grid : js_sys::Uint8Array, in_grid_coordinates : js_sys::Uint8Ar
     let mut final_grid = in_grid.to_vec();
     let mut grid = in_grid.to_vec();
 
-    let mut is_done = false;
+    exported.is_done = false;
 
     stack.push((-1, 0, 0));
     
-    while stack.len() > 0 && !is_done {
+    while stack.len() > 0 && !exported.is_done {
         let (value,start,index_value) = stack.pop().unwrap();
         let mut temp_index_value = index_value;
         let mut i : usize = start;
@@ -111,28 +106,29 @@ pub fn solve(in_grid : js_sys::Uint8Array, in_grid_coordinates : js_sys::Uint8Ar
             grid[start] = value as u8;
         }
 
-        for (pos, value_it) in grid[start..].iter().enumerate() {
-            if *value_it == 0 {
+        for pos in start..grid.len() {
+            if grid[pos] == 0 {
                 let possible_values = get_possible_values(pos, &grid, &grid_coordinates);
 
                 if possible_values.len() > temp_index_value {
-                        temp_index_value+=1;
-                        stack.push((possible_values[temp_index_value] as i16, pos, temp_index_value));
-                        temp_index_value = 0;
+                    let v =  possible_values[temp_index_value] as i16;
+                    temp_index_value+=1;
+                    stack.push((grid[pos] as i16, pos, temp_index_value));
+                    grid[pos] = v as u8;
+
+                    temp_index_value = 0;
                 }
                 else {
                     break;
                 }
             }
-            i+=1;
+            i = pos;
         }
-
-        is_done = i == final_grid.len();
-        if is_done {
-            final_grid = final_grid.to_vec();
+        exported.is_done = i == final_grid.len() - 1;
+        if exported.is_done {
+            final_grid = grid.to_vec();
         }
     }
-    exported.is_done = is_done;
 
     return js_sys::Uint8Array::from(&final_grid[..]); 
 }

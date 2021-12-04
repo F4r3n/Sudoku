@@ -135,8 +135,8 @@
 
                 let v = sudokuHelper.return_named_struct(false);
                 let grid = sudokuHelper.solve(inGrid, this._gridCoord, v);
-                console.log(v.isDone);
-                resolve([true, grid])
+                console.log(v.is_done)
+                resolve([v.is_done, grid])
 
             });
 
@@ -212,8 +212,6 @@
     }
 
     function setValue(inV) {
-        console.log(sudokuHelper.greet());
-
         sudoku.GetGrid()[currentElementSelected] = inV
         data = sudoku.GetGrid();
     }
