@@ -73,7 +73,8 @@ export default {
 
 		rust({
 			verbose: true,
-			serverPath: "./build/"
+			serverPath: production ? "./Sudoku/build/" : "./build",
+			debug:!production
 		  }),
 	],
 	watch: {
