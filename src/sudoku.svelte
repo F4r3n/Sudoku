@@ -1,8 +1,13 @@
 <script>
+    import wasm from '../SudokuHelper/Cargo.toml';
+
+
     export let possibleValues = []
     export let currentElementHovered = -1;
     export let currentElementSelected = -1;
     export let data;
+
+    let sudokuHelper = null
     class Sudoku {
 
         constructor() {
@@ -22,16 +27,17 @@
             return this._data;
         }
 
+        
+        IsInBlock(currentBlock, inPos) {
+            return this._gridCoord[currentBlock] === this._gridCoord[inPos];
+        }
+
         GetPos(x, y) {
             return y*this._SUDOKU_SIZE+x;
         }
 
         GetCoord(inPos) {
             return [inPos%this._SUDOKU_SIZE, parseInt(inPos/this._SUDOKU_SIZE)];
-        }
-
-        Iterate(inPos, callBack) {
-            
         }
 
         GetPossibleValues(inPos, inGrid) {
@@ -86,9 +92,8 @@
             return data;
         }
 
-        Solve(inGrid, callback) {
+        SolveJS(inGrid, callback) {
             return new Promise((resolve, reject) => {
-
                 let finalGrid = inGrid;
                 let stack = []
                 stack.push([inGrid.slice(), 0, 0]);
@@ -115,14 +120,28 @@
                         finalGrid = grid;
                     }
                 }
+
+
                 resolve([isDone, finalGrid])
+                
+
+
             });
 
         }
 
-        IsInBlock(currentBlock, inPos) {
-            return this._gridCoord[currentBlock] === this._gridCoord[inPos];
+        Solve(inGrid, callback) {
+            return new Promise((resolve, reject) => {
+
+                let v = sudokuHelper.return_named_struct(false);
+                let grid = sudokuHelper.solve(inGrid, this._gridCoord, v);
+                console.log(v.isDone);
+                resolve([true, grid])
+
+            });
+
         }
+
 
         Generate() {
             console.log("Generate");
@@ -174,14 +193,33 @@
                 console.log("No solution")
             }
         });        
+    }
 
+    async function SolveJS() {
+        sudoku.SolveJS(sudoku.GetGrid(), (inGrid) => {console.log(inGrid);data = inGrid}).then(([done, grid]) => {
+            if(done) {
+                sudoku.SetGrid(grid);
+                data = sudoku.GetGrid();
+            }
+            else {
+                console.log("No solution")
+            }
+        });        
+    }
+
+    async function Init() {
+        sudokuHelper = await wasm();
     }
 
     function setValue(inV) {
+        console.log(sudokuHelper.greet());
+
         sudoku.GetGrid()[currentElementSelected] = inV
         data = sudoku.GetGrid();
     }
 
+
+    Init();
     export let sudoku = new Sudoku()
     sudoku.Init()
     data = sudoku.GetGrid();
@@ -189,6 +227,7 @@
 <div class="mainMenu">
     <button class="button" on:click={Generate}>Generate</button>
     <button class="button" on:click={Solve}>Solve</button>
+    <button class="button" on:click={SolveJS}>SolveJS</button>
 </div>
 
 <div class="container">
