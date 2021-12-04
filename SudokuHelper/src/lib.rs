@@ -21,7 +21,7 @@ macro_rules! log {
      "Hello, wasm-game-of-life!".into()
 }
 
-fn is_in_block(current_block : usize, in_pos : usize, in_grid_block : &Vec::<u8>) -> bool{
+fn is_in_block(current_block : usize, in_pos : usize, in_grid_block : &[u8]) -> bool{
     return (in_pos < in_grid_block.len())
      && (current_block < in_grid_block.len())
      && (in_grid_block[current_block] == in_grid_block[in_pos]);
