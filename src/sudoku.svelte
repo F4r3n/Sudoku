@@ -134,7 +134,7 @@
             return new Promise((resolve, reject) => {
 
                 let v = sudokuHelper.return_named_struct(false);
-                let grid = sudokuHelper.solve(inGrid, this._gridCoord, v);
+                let grid = sudokuHelper.solve(inGrid, v);
                 console.log(v.is_done)
                 resolve([v.is_done, grid])
 

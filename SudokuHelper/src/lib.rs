@@ -26,42 +26,28 @@ fn get_pos(x : usize, y : usize) -> usize {
     return y*SUDOKU_SIZE+x;
 }
 
-fn get_coord(in_pos : usize) -> (i8, i8) {
-    return ((in_pos%SUDOKU_SIZE) as i8, (in_pos/SUDOKU_SIZE) as i8);
+fn get_coord(in_pos : usize) -> (usize, usize) {
+    return ((in_pos%SUDOKU_SIZE), (in_pos/SUDOKU_SIZE));
 }
 
-pub fn get_possible_values(in_pos : usize, in_grid : &Vec::<u8>, in_grid_block : &[u8]) -> Vec::<u8> {
+pub fn get_possible_values(in_pos : usize, in_grid : &Vec::<u8>, in_grid_block : &[usize]) -> Vec::<u8> {
 
     let (x,y) = get_coord(in_pos);
     let mut possible_values = vec![1,2,3,4,5,6,7,8,9];
 
-    for xi in (x - 3)..(x + 3) {
 
-        if xi < 0 {
-            continue;
-        }
-        for yi in (y - 3)..(y + 3) {
-            if yi < 0 {
-                continue;
-            }
-            let posi = get_pos(xi as usize, yi as usize);
-            if is_in_block(in_pos, posi, in_grid_block) {
-                let val = in_grid[posi] as usize;
+    for posi in in_grid_block.iter() {
+        let val = in_grid[*posi] as usize;
 
-                if val != 0 {
-                    possible_values[val - 1] = 0;
-                }
-            }
-        }
-    }
-
-    for xi in 0..SUDOKU_SIZE {
-        let posi = get_pos(xi as usize, y as usize);
-        let val = in_grid[posi] as usize;
         if val != 0 {
             possible_values[val - 1] = 0;
         }
-        
+    }
+
+    for value in in_grid[y*SUDOKU_SIZE..(y+1)*SUDOKU_SIZE].iter() {
+        if *value != 0 {
+            possible_values[(*value - 1) as usize] = 0;
+        }
     }
 
     for yi in 0..SUDOKU_SIZE {
@@ -73,6 +59,30 @@ pub fn get_possible_values(in_pos : usize, in_grid : &Vec::<u8>, in_grid_block :
     }
     possible_values.retain(|&x| x != 0);
     return possible_values;
+}
+
+pub fn get_block_number(in_pos : usize)->usize {
+    (in_pos/3)%3 + (in_pos/27)*3
+}
+
+pub fn create_grid_block() -> Vec::<usize>
+{
+    let mut grid = vec![0; SUDOKU_SIZE*SUDOKU_SIZE];
+
+    for pos in 0..SUDOKU_SIZE*SUDOKU_SIZE {
+        let block_number = get_block_number(pos);
+
+        for value in grid[block_number*SUDOKU_SIZE..(block_number*SUDOKU_SIZE + SUDOKU_SIZE)].iter_mut() {
+
+            if *value == 0 {
+                *value = pos;
+                break;
+            }
+
+        }
+    }
+
+    return grid;
 }
 
 
@@ -87,9 +97,9 @@ pub fn return_named_struct(is_done: bool) -> ExportedResults {
 }
 
 #[wasm_bindgen]
-pub fn solve(in_grid : js_sys::Uint8Array, in_grid_coordinates : js_sys::Uint8Array, exported : &mut ExportedResults) -> js_sys::Uint8Array {
-    let grid_coordinates = in_grid_coordinates.to_vec();
+pub fn solve(in_grid : js_sys::Uint8Array, exported : &mut ExportedResults) -> js_sys::Uint8Array {
 
+    let grid_block = create_grid_block();
     let mut stack = Vec::<(i16, usize, usize)>::new();
     let mut final_grid = in_grid.to_vec();
     let mut grid = in_grid.to_vec();
@@ -97,6 +107,7 @@ pub fn solve(in_grid : js_sys::Uint8Array, in_grid_coordinates : js_sys::Uint8Ar
     exported.is_done = false;
 
     stack.push((-1, 0, 0));
+    
     
     while stack.len() > 0 && !exported.is_done {
         let (value,start,index_value) = stack.pop().unwrap();
@@ -108,7 +119,10 @@ pub fn solve(in_grid : js_sys::Uint8Array, in_grid_coordinates : js_sys::Uint8Ar
 
         for pos in start..grid.len() {
             if grid[pos] == 0 {
-                let possible_values = get_possible_values(pos, &grid, &grid_coordinates);
+                let block_number = get_block_number(pos);
+
+                let possible_values = get_possible_values(pos, &grid,
+                     &grid_block[block_number*SUDOKU_SIZE..block_number*SUDOKU_SIZE + SUDOKU_SIZE]);
 
                 if possible_values.len() > temp_index_value {
                     let v =  possible_values[temp_index_value] as i16;
@@ -129,6 +143,7 @@ pub fn solve(in_grid : js_sys::Uint8Array, in_grid_coordinates : js_sys::Uint8Ar
             final_grid = grid.to_vec();
         }
     }
+    
 
     return js_sys::Uint8Array::from(&final_grid[..]); 
 }
