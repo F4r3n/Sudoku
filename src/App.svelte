@@ -10,9 +10,6 @@
 </main>
 
 <style>
-	main {
-
-	}
 
 	#bottom {
 		background-color: antiquewhite;

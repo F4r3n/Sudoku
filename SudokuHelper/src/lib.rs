@@ -139,19 +139,16 @@ pub fn solve_sudoku( in_grid : Vec::<u8>, find_unicity : bool)->(bool, Vec::<u8>
     let grid_block = create_grid_block();
     let mut stack = Vec::<(Vec::<u8>, usize, usize)>::new();
     let mut final_grid = in_grid.to_vec();
-    let mut grid = in_grid.to_vec();
 
     let mut is_done = false;
     let mut number_solutions = 0;
 
-    stack.push((grid.clone(), 0, 0)); 
+    stack.push((in_grid, 0, 0)); 
     
     while stack.len() > 0 && (find_unicity || !is_done) {
         let (mut grid,start,index_value) = stack.pop().unwrap();
         let mut temp_index_value = index_value;
         let mut i : usize = start;
-
-
 
         for pos in start..grid.len() {
             if grid[pos] == 0 {
@@ -159,9 +156,6 @@ pub fn solve_sudoku( in_grid : Vec::<u8>, find_unicity : bool)->(bool, Vec::<u8>
 
                 let possible_values = get_possible_values(pos, &grid,
                      &grid_block[block_number*SUDOKU_SIZE..block_number*SUDOKU_SIZE + SUDOKU_SIZE]);
-
-
-                //log!("{:?}", probas);
 
                 if possible_values.len() > temp_index_value {
                     let v =  possible_values[temp_index_value] as i16;
@@ -189,95 +183,19 @@ pub fn solve_sudoku( in_grid : Vec::<u8>, find_unicity : bool)->(bool, Vec::<u8>
         }
     }
 
-
-    /*
-    let grid_block = create_grid_block();
-    let mut stack = Vec::<(Vec::<u8>, Vec::<(usize, Vec::<u8>)>)>::new();
-    let mut final_grid = in_grid.to_vec();
-    let grid = in_grid;
-    let proba = build_proabilities_array(&grid, &grid_block);
-    //log!("Build probas {:?}", proba);
-
-    let mut is_done = false;
-    
-    stack.push((grid.to_vec(), proba));
-
-    while stack.len() > 0 && !is_done {
-        let (mut grid,  mut probas) = stack.pop().unwrap();
-        let mut has_changed = true;
-
-        let mut is_valid = true;
-        while is_valid {
-
-
-            while has_changed { 
-
-                has_changed = false;
-                update_probabilities(& mut probas, &grid, &grid_block);
-                //log!("Update probas {:?}", probas);
-    
-                for (pos, value) in probas.iter().enumerate() {
-                    let index = value.0;
-    
-                    if grid[index] == 0 {
-                        if probas[pos].1.len() == 1 {
-                            let v =  probas[pos].1[0];
-                            grid[index] = v;
-                            has_changed = true;
-                        }
-                    }
-                }
-            }
-    
-            if probas.len() > 0 && !has_changed {
-                let proba = &probas[0];
-                let clone_proba = probas.clone();
-                for value in proba.1.iter() {
-    
-                    let mut temp_grid = grid.clone();
-                    temp_grid[proba.0] = *value;
-    
-                    let mut temp_proba = clone_proba.clone();
-                    update_probabilities(& mut temp_proba, &temp_grid, &grid_block);
-    
-                    stack.push((temp_grid.to_vec(), temp_proba.clone()));
-    
-                }
-            }else if probas.len() == 0 {
-                for value in grid.iter() {
-                    if *value == 0 {
-                        is_valid = false;
-                        break;
-                    }
-                }
-            }
-    
-            is_done = probas.len() == 0 && is_valid;
-    
-            if is_done {
-                final_grid = grid.to_vec();
-            }
-        }
-
-
-    }
-    */
     return (is_done, final_grid, number_solutions!=0);
 }
 
 pub fn print_grid( grid : &Vec::<u8>) {
     for y in 0..9 {
         if y%3 == 0 {
-            for i in 0..9 {
+            for _ in 0..9 {
                 print!("---");
             }
             print!("\n");
-
         }
 
         for x in 0..9 {
-
-
             print!(" {} ", grid[get_pos(x, y)]);
             if x %3 == 0 && x > 0 {
                 print!("|");
@@ -295,29 +213,19 @@ pub fn generate_random_grid() -> Vec::<u8> {
 
     for _i in 0..30 {
         let pos: usize = rng.gen_range(0..SUDOKU_SIZE*SUDOKU_SIZE);
-        //log!("{:?}", pos);
         if grid[pos] == 0 {
-            //print_grid(&grid);
             let possible_values = get_possible_values_from_pos(pos, &grid, &grid_block);
-            //println!("{:?}", possible_values);
-            //log!("{:?}", possible_values);
-
             if possible_values.len() > 0 {
                 let random = rng.gen_range(0..possible_values.len());
                 let value: u8 = possible_values[random];
 
                 if value > 0 {
                     grid[pos] = value;
-
-                    //println!("{} {}", pos, value);
-
                 }
             }
 
         }
     }
-
-    //log!("{:?}", grid);
 
     return grid;
 }
@@ -339,7 +247,7 @@ pub fn generate(in_level : u8) -> Vec<u8> {
                 if grid[pos] != 0 {
                     let former_value = grid[pos];
                     grid[pos] = 0;
-                    let (done, final_grid, is_unique) = solve_sudoku(grid.to_vec(), true);
+                    let (_, _, is_unique) = solve_sudoku(grid.to_vec(), true);
                     if !is_unique {
                         grid[pos] = former_value;
                     }
@@ -373,7 +281,7 @@ pub fn generate_wasm(in_level : u8) -> js_sys::Uint8Array {
 #[wasm_bindgen]
 pub fn solve_wasm(in_grid : js_sys::Uint8Array, exported : &mut ExportedResults) -> js_sys::Uint8Array {
 
-    let (done, final_grid, is_unique) = solve_sudoku(in_grid.to_vec(), false);
+    let (done, final_grid, _) = solve_sudoku(in_grid.to_vec(), false);
     exported.is_done = done;
 
     return js_sys::Uint8Array::from(&final_grid[..]); 

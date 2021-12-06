@@ -375,10 +375,6 @@
         border-top: 2px solid black;
     }
 
-    .pad {
-
-    }
-
     .numpad {
         height: fit-content;
         width: fit-content;
