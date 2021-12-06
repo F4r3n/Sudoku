@@ -4,6 +4,11 @@ html, body {
 	height: 100%;
 }
 
+:root {
+	--main-color:#ff3e00;
+	--main-color-light:#ff7243;
+}
+
 body {
 	color: #333;
 	margin: 0;
