@@ -234,8 +234,6 @@
     data = sudoku.GetGrid();
 </script>
 <div class="mainMenu">
-    <button class="button" on:click={Generate}>Generate</button>
-    <button class="button" on:click={Solve}>Solve</button>
     {#if dev_mode }
     <button class="button" on:click={SolveJS}>SolveJS</button>
     <button class="button" on:click={print}>Print</button>
@@ -259,6 +257,7 @@
         {/each}
     </div>
     
+    <div class="right-menu">
         <div class="pad">
             <div class="numpad">
                 {#each [1,2,3,4,5,6,7,8,9] as i}
@@ -267,16 +266,33 @@
             </div>
 
 
-            <div class="number border" on:click={() => {setValue(0)}}>Clear</div>
+            <div class="number noselect" on:click={() => {setValue(0)}}>Clear</div>
+            {#if dev_mode }
             <div class ="possibleValues">{possibleValues}</div>
+            {/if}
+            
         </div>
-        
+        <button class="button noselect" on:click={Generate}>Generate</button>
+        <button class="button noselect" on:click={Solve}>Solve</button>
+    </div>
+
  
 
 </div>
 
 
 <style>
+
+    .noselect {
+        -webkit-touch-callout: none; /* iOS Safari */
+        -webkit-user-select: none; /* Safari */
+        -khtml-user-select: none; /* Konqueror HTML */
+        -moz-user-select: none; /* Old versions of Firefox */
+        -ms-user-select: none; /* Internet Explorer/Edge */
+        user-select: none; /* Non-prefixed version, currently
+                                  supported by Chrome, Edge, Opera and Firefox */
+    }
+
     .container {
         width: fit-content;
 
@@ -287,12 +303,15 @@
     .button {
         background-color:var(--main-color-light); /* Green */
         border: none;
+        border-radius: 10%;
         color: white;
-        padding: 15px 32px;
+        padding: 7px 16px;
         text-align: center;
         text-decoration: none;
-        display: inline-block;
         font-size: 16px;
+        display: inline-block;
+        margin: 4px 2px;
+
     }
 
     .mainMenu {
@@ -391,10 +410,7 @@
 
         grid-template-columns: repeat(3, 3em);
         grid-template-rows: repeat(3, 3em);
-        border: black;
-        border: 2px solid var(--main-color-light);
-        border-radius: 10%;
-        margin-left: 20px;
+
     }
 
     .number {
@@ -407,6 +423,16 @@
         color:var(--main-color-light);
     }
 
+    .pad {
+        justify-content: center;
+        border: 2px solid var(--main-color-light);
+        border-radius: 5%;
+        padding: 2px;
+        height: fit-content;
+        width: fit-content;
+        margin-bottom: 10px;
+    }
+
     .possibleValues {
         color:var(--main-color-light)
     }
@@ -415,5 +441,11 @@
 	    -moz-box-sizing: border-box;    /* Firefox, other Gecko */
 	    box-sizing: border-box;
         box-shadow: 0px 0px 0px 1px var(--main-color-light);
+    }
+    .right-menu {
+        margin-left: 20px;
+        height: fit-content;
+        display: flex;
+        flex-direction: column;
     }
 </style>

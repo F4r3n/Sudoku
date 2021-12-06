@@ -6,19 +6,26 @@
 	<h1>Sudoku!</h1>
 	<Sudoku/>
 
-	<div id="bottom">For Neha ❤️</div>
+	<div id="footer">For Neha ❤️</div>
 </main>
 
 <style>
 
-	#bottom {
+	#footer {
 		background-color: antiquewhite;
 		font-weight: 500;
-		width:100%;
-		padding-top: 10px;
-		margin: auto 0;
 		text-align: center;
+		position: absolute;
+  		right: 0;
+  		bottom: 0;
+  		left: 0;
 	}
+
+	*,
+*:before,
+*:after {
+  box-sizing: inherit;
+}
 
 	h1 {
 		padding: 10px;
@@ -34,6 +41,9 @@
 	@media (min-width: 640px) {
 		main {
 			max-width: none;
+			min-height: 100%;
+			margin: 0;
+			position: relative;
 		}
 	}
 </style>
