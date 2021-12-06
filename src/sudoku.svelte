@@ -267,7 +267,7 @@
             </div>
 
 
-            <div class="number" on:click={() => {setValue(0)}}>Clear</div>
+            <div class="number border" on:click={() => {setValue(0)}}>Clear</div>
             <div class ="possibleValues">{possibleValues}</div>
         </div>
         
@@ -396,18 +396,19 @@
         grid-template-columns: repeat(3, 3em);
         grid-template-rows: repeat(3, 3em);
         border: black;
+        border: 2px solid var(--main-color-light);
         border-radius: 10%;
-
+        margin-left: 20px;
     }
 
     .number {
         text-align: center;
         font-size: xx-large;
         opacity: 1.0;
-        background: grey;
+        background: white;
         justify-content: center;
         align-items: center;
-        color:rgb(226, 226, 226);
+        color:var(--main-color-light);
     }
 
     .possibleValues {
@@ -417,7 +418,6 @@
         -webkit-box-sizing: border-box; /* Safari/Chrome, other WebKit */
 	    -moz-box-sizing: border-box;    /* Firefox, other Gecko */
 	    box-sizing: border-box;
-        box-shadow: 0px 0px 0px 1px #bdc3c7;
-
+        box-shadow: 0px 0px 0px 1px var(--main-color-light);
     }
 </style>

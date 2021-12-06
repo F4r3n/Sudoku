@@ -4,7 +4,9 @@
 
 <main>
 	<h1>Sudoku!</h1>
-<Sudoku/>
+	<Sudoku/>
+
+	<div id="bottom">For Neha ❤️</div>
 </main>
 
 <style>
@@ -12,13 +14,17 @@
 
 	}
 
-	:global(:root) {
-		--main-color:#ff3e00;
-		--main-color-light:#ff7243;
+	#bottom {
+		background-color: antiquewhite;
+		font-weight: 500;
+		width:100%;
+		padding-top: 10px;
+		margin: auto 0;
+		text-align: center;
 	}
 
 	h1 {
-		padding: 1em;
+		padding: 10px;
 		max-width: 240px;
 		margin: 0 auto;
 		text-align: center;
