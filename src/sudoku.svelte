@@ -120,14 +120,9 @@
                         finalGrid = grid;
                     }
                 }
-
-
                 resolve([isDone, finalGrid])
-                
-
 
             });
-
         }
 
         Solve(inGrid, callback) {
@@ -139,46 +134,21 @@
                 resolve([v.is_done, grid])
 
             });
-
         }
 
 
         Generate() {
             return new Promise((resolve, reject) => {
 
-                    let grid = sudokuHelper.generate_wasm(2);
-                    resolve(grid)
-
-                }); 
-            /*
-            console.log("Generate");
-            this.Reset();
-            function getRandomInt(min, max) {
-                min = Math.ceil(min);
-                max = Math.floor(max);
-                const random = Math.floor(Math.random() * (max - min) + min); //The maximum is exclusive and the minimum is inclusive
-                return random;
-            }
-
-            const numberOfIteration = (this._SUDOKU_SIZE*this._SUDOKU_SIZE-1)/8;
-            for(let i = 0; i < numberOfIteration; i++) {
-
-                const pos = getRandomInt(0, this._SUDOKU_SIZE*this._SUDOKU_SIZE)
-                if(this._data[pos] !== 0) continue;
-
-                const possibleValues = this.GetPossibleValues(pos, this._data)
-
-                if(possibleValues.length > 0) {
-                    this._data[pos] = possibleValues[getRandomInt(0, possibleValues.length)]
-                }
-
-            }
-            */
+                let grid = sudokuHelper.generate_wasm(2);
+                 resolve(grid)
+            }); 
         }
     };
 
     function displayNumpad(element) {
-        currentElementSelected = element.target.getAttribute("pos");
+        currentElementSelected = parseInt(element.target.getAttribute("pos"));
+        console.log(currentElementSelected);
     }
 
     function mouseOver(element) {
@@ -237,7 +207,7 @@
                 currentElementSelected=clamp(currentElementSelected+9, 0, 80);
                 break;
             case "ArrowRight":
-                currentElementSelected=clamp(currentElementSelected+1, 0, 80);
+                currentElementSelected=clamp(currentElementSelected + 1, 0, 80);
                 break;
             case "ArrowLeft":
                 currentElementSelected=clamp(currentElementSelected-1, 0, 80);
