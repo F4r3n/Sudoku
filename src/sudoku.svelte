@@ -1,7 +1,7 @@
 <script>
     import wasm from '../SudokuHelper/Cargo.toml';
 
-
+    let dev_mode = false;
     export let possibleValues = []
     export let currentElementHovered = -1;
     export let currentElementSelected = -1;
@@ -134,7 +134,7 @@
             return new Promise((resolve, reject) => {
 
                 let v = sudokuHelper.return_named_struct(false);
-                let grid = sudokuHelper.solve(inGrid, v);
+                let grid = sudokuHelper.solve_wasm(inGrid, v);
                 console.log(v.is_done)
                 resolve([v.is_done, grid])
 
@@ -144,6 +144,13 @@
 
 
         Generate() {
+            return new Promise((resolve, reject) => {
+
+                    let grid = sudokuHelper.generate_wasm(2);
+                    resolve(grid)
+
+                }); 
+            /*
             console.log("Generate");
             this.Reset();
             function getRandomInt(min, max) {
@@ -166,6 +173,7 @@
                 }
 
             }
+            */
         }
     };
 
@@ -178,9 +186,11 @@
         possibleValues = sudoku.GetPossibleValues(currentElementHovered, sudoku.GetGrid());
     }
 
-    function Generate() {
-        sudoku.Generate()
-        data = sudoku.GetGrid();
+    async function Generate() {
+        sudoku.Generate().then((grid) =>{
+            sudoku.SetGrid(grid);
+            data = sudoku.GetGrid();
+        });
     }
 
     async function Solve() {
@@ -212,10 +222,41 @@
     }
 
     function setValue(inV) {
-        sudoku.GetGrid()[currentElementSelected] = inV
-        data = sudoku.GetGrid();
+        if(currentElementSelected >= 0 && currentElementSelected < 81) {
+            sudoku.GetGrid()[currentElementSelected] = inV
+            data = sudoku.GetGrid();
+        }
     }
 
+    function handleKeydown(event) {
+        const clamp = (num, min, max) => Math.min(Math.max(num, min), max);
+
+        const key = event.key;
+        switch (key) {
+            case "ArrowDown":
+                currentElementSelected=clamp(currentElementSelected+9, 0, 80);
+                break;
+            case "ArrowRight":
+                currentElementSelected=clamp(currentElementSelected+1, 0, 80);
+                break;
+            case "ArrowLeft":
+                currentElementSelected=clamp(currentElementSelected-1, 0, 80);
+            break;
+            case "ArrowUp":
+                currentElementSelected=clamp(currentElementSelected-9, 0, 80);
+            break;
+            default:
+                if(key >= 0 && key <=9) {
+                    setValue(key);
+                }
+                break;
+        }
+        currentElementHovered=currentElementSelected;
+    }
+
+    function print() {
+        console.log(sudoku.GetGrid());
+    }
 
     Init();
     export let sudoku = new Sudoku()
@@ -225,8 +266,14 @@
 <div class="mainMenu">
     <button class="button" on:click={Generate}>Generate</button>
     <button class="button" on:click={Solve}>Solve</button>
+    {#if dev_mode }
     <button class="button" on:click={SolveJS}>SolveJS</button>
+    <button class="button" on:click={print}>Print</button>
+    {/if}
+
 </div>
+
+<svelte:window on:keydown={handleKeydown}/>
 
 <div class="container">
     <div class="sudoku_board">
