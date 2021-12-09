@@ -427,27 +427,6 @@
         color:var(--main-color-light);
     }
 
-    @media only screen and (max-width: 768px) {
-  /* For mobile phones: */
-        [class*="sudoku_board"] {
-            grid-template-columns: repeat(9, 2em);
-            grid-template-rows: repeat(9, 2em);
-        }
-
-        [class*="cell"] {
-            font-size: 1rem;
-        }
-
-        [class*="number"] {
-            font-size: 1rem;
-        }
-
-        [class*="numpad"] {
-            grid-template-columns: repeat(3, 1.5em);
-            grid-template-rows: repeat(3, 1.5em);
-        }
-    }
-
     .pad {
         justify-content: center;
         border: 2px solid var(--main-color-light);
