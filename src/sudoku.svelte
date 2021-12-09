@@ -295,7 +295,7 @@
 
     .container {
         width: fit-content;
-
+        height: fit-content;
         display: flex;
         margin: auto;
     }
@@ -342,6 +342,8 @@
 
     }
 
+
+
     .cell_hover {
         background:rgb(239, 240, 199) !important;
     }
@@ -367,6 +369,8 @@
         box-shadow: 0px 0px 0px 1px #bdc3c7;
   
     }
+
+
 
     .cell:nth-child(3n+1){
         border-left: 2px solid black;
@@ -421,6 +425,27 @@
         justify-content: center;
         align-items: center;
         color:var(--main-color-light);
+    }
+
+    @media only screen and (max-width: 768px) {
+  /* For mobile phones: */
+        [class*="sudoku_board"] {
+            grid-template-columns: repeat(9, 2em);
+            grid-template-rows: repeat(9, 2em);
+        }
+
+        [class*="cell"] {
+            font-size: 1rem;
+        }
+
+        [class*="number"] {
+            font-size: 1rem;
+        }
+
+        [class*="numpad"] {
+            grid-template-columns: repeat(3, 1.5em);
+            grid-template-rows: repeat(3, 1.5em);
+        }
     }
 
     .pad {
