@@ -1,13 +1,20 @@
 <script>
 	import Sudoku from "./sudoku.svelte";
+	import NavBar from "./navbar.svelte";
+	let module;
 </script>
 
 <main>
+	<NavBar items={[{name:"Generate", function:() => {module.Generate()}}
+, {name:"Solve", function:() => {module.Solve()}}
+, {name:"Print", function:() => {module.Print()}}
+, {name:"Load", function:() => {module.Load()}}
+, {name:"Save", function:() => {module.Save()}}
+]}/>
 
 		<h1>Sudoku!</h1>
 		<div id="sub-title">For Neha ❤️</div>
-	
-	<Sudoku/>
+	<Sudoku bind:SudokuModule={module}/>
 
 </main>
 

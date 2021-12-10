@@ -2,7 +2,6 @@
     import wasm from '../SudokuHelper/Cargo.toml';
 
     let dev_mode = false;
-    export let possibleValues = []
     export let currentElementHovered = -1;
     export let currentElementSelected = -1;
     export let data;
@@ -13,66 +12,12 @@
         constructor() {
             this._SUDOKU_SIZE=9;
             this._data = new Uint8Array(this._SUDOKU_SIZE*this._SUDOKU_SIZE);
-            this._gridCoord = null
         }
 
-        Init() {
-            this._gridCoord = this._CreateCoordGrid()
-            for(let i = 0; i < this._data.length; i++) {
-                this._data[i] = 0;
-            }
-        }
+
 
         GetGrid() {
             return this._data;
-        }
-
-        
-        IsInBlock(currentBlock, inPos) {
-            return this._gridCoord[currentBlock] === this._gridCoord[inPos];
-        }
-
-        GetPos(x, y) {
-            return y*this._SUDOKU_SIZE+x;
-        }
-
-        GetCoord(inPos) {
-            return [inPos%this._SUDOKU_SIZE, parseInt(inPos/this._SUDOKU_SIZE)];
-        }
-
-        GetPossibleValues(inPos, inGrid) {
-
-            const [x,y] = this.GetCoord(inPos);
-            let possibleValues = [1,2,3,4,5,6,7,8,9];
-            for(let xi = x - 3; xi < x + 3; xi++) {
-                for(let yi = y - 3; yi < y + 3; yi++) {
-                    let posi = this.GetPos(xi, yi);
-                    if(this.IsInBlock(inPos, posi)) {
-                        const val = inGrid[posi];
-                        if(val !== 0) {
-                            possibleValues[val - 1] = 0
-                        }
-                    }
-                }
-            }
-
-            for(let xi = 0; xi < this._SUDOKU_SIZE; xi++) {
-                const posi = this.GetPos(xi, y);
-                const val = inGrid[posi];
-                if(val !== 0) {
-                    possibleValues[val - 1] = 0
-                }
-                
-            }
-        
-            for(let yi = 0; yi < this._SUDOKU_SIZE; yi++) {
-                const posi = this.GetPos(x, yi);
-                const val = inGrid[posi];
-                if(val !== 0) {
-                    possibleValues[val - 1] = 0
-                }
-            }
-            return possibleValues.filter((x) => {return x !== 0;});
         }
 
         Reset() {
@@ -84,48 +29,8 @@
             this._data = inGrid;
         }
 
-        _CreateCoordGrid() {
-            let data = new Uint8Array(this._SUDOKU_SIZE*this._SUDOKU_SIZE);
-            for(let i = 0; i < data.length; ++i) {
-                data[i] = parseInt(i/3)%3 + parseInt(i/27)*3
-            }
-            return data;
-        }
 
-        SolveJS(inGrid, callback) {
-            return new Promise((resolve, reject) => {
-                let finalGrid = inGrid;
-                let stack = []
-                stack.push([inGrid.slice(), 0, 0]);
-                let isDone = false;
-                while(stack.length > 0 && !isDone) {
-                    let [grid,start,indexValue] = stack.pop()
-                    let i = 0;
-                    for(i = start; i < grid.length; ++i) {
-                        if(grid[i] !== 0) continue;
-                        let possibleValues = this.GetPossibleValues(i, grid);
-                        
-                        if(possibleValues.length > indexValue) {
-                            grid[i] = possibleValues[indexValue];
-                            if(possibleValues.length > 1)
-                                stack.push([grid.slice(), i, ++indexValue]);
-                            indexValue = 0;
-                        }
-                        else {
-                            break;
-                        }
-                    }
-                    isDone = (i === grid.length);
-                    if(isDone) {
-                        finalGrid = grid;
-                    }
-                }
-                resolve([isDone, finalGrid])
-
-            });
-        }
-
-        Solve(inGrid, callback) {
+        Solve(inGrid) {
             return new Promise((resolve, reject) => {
 
                 let v = sudokuHelper.return_named_struct(false);
@@ -153,39 +58,9 @@
 
     function mouseOver(element) {
         currentElementHovered = element.target.getAttribute("pos");
-        possibleValues = sudoku.GetPossibleValues(currentElementHovered, sudoku.GetGrid());
     }
 
-    async function Generate() {
-        sudoku.Generate().then((grid) =>{
-            sudoku.SetGrid(grid);
-            data = sudoku.GetGrid();
-        });
-    }
 
-    async function Solve() {
-        sudoku.Solve(sudoku.GetGrid(), (inGrid) => {console.log(inGrid);data = inGrid}).then(([done, grid]) => {
-            if(done) {
-                sudoku.SetGrid(grid);
-                data = sudoku.GetGrid();
-            }
-            else {
-                console.log("No solution")
-            }
-        });        
-    }
-
-    async function SolveJS() {
-        sudoku.SolveJS(sudoku.GetGrid(), (inGrid) => {console.log(inGrid);data = inGrid}).then(([done, grid]) => {
-            if(done) {
-                sudoku.SetGrid(grid);
-                data = sudoku.GetGrid();
-            }
-            else {
-                console.log("No solution")
-            }
-        });        
-    }
 
     async function Init() {
         sudokuHelper = await wasm();
@@ -228,14 +103,45 @@
         console.log(sudoku.GetGrid());
     }
 
+    export const SudokuModule = 
+    {
+        async Generate() {
+            sudoku.Generate().then((grid) =>{
+                sudoku.SetGrid(grid);
+                data = sudoku.GetGrid();
+            });
+        },
+
+        async Solve() {
+            sudoku.Solve(sudoku.GetGrid()).then(([done, grid]) => {
+                if(done) {
+                    sudoku.SetGrid(grid);
+                    data = sudoku.GetGrid();
+                }
+                else {
+                    console.log("No solution")
+                }
+            });        
+        },
+
+        async Print() {
+
+        },
+
+        async Load() {
+
+        },
+        async Save() {
+
+        }
+    }
+
     Init();
     export let sudoku = new Sudoku()
-    sudoku.Init()
     data = sudoku.GetGrid();
 </script>
 <div class="mainMenu">
     {#if dev_mode }
-    <button class="button" on:click={SolveJS}>SolveJS</button>
     <button class="button" on:click={print}>Print</button>
     {/if}
 
@@ -267,13 +173,11 @@
 
 
             <div class="number noselect" on:click={() => {setValue(0)}}>Clear</div>
-            {#if dev_mode }
-            <div class ="possibleValues">{possibleValues}</div>
-            {/if}
+
             
         </div>
-        <button class="button noselect" on:click={Generate}>Generate</button>
-        <button class="button noselect" on:click={Solve}>Solve</button>
+        <button class="button noselect" on:click={SudokuModule.Generate}>Generate</button>
+        <button class="button noselect" on:click={SudokuModule.Solve}>Solve</button>
     </div>
 
  
@@ -437,9 +341,6 @@
         margin-bottom: 10px;
     }
 
-    .possibleValues {
-        color:var(--main-color-light)
-    }
     .border{
         -webkit-box-sizing: border-box; /* Safari/Chrome, other WebKit */
 	    -moz-box-sizing: border-box;    /* Firefox, other Gecko */
