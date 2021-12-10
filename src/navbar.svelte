@@ -10,7 +10,7 @@
 </svelte:head>
 
 <div class="navbar-button navbar-pos" class:drawer-open={isOpened}>
-<img src="./hamburger-navigation-icon-12.jpeg" alt="menu" width="32" height="32" on:click={() => {isOpened=!isOpened}}/>
+<img src={isOpened ? "close.png" : "./hamburger-navigation-icon-12.png"} alt="menu" width="32" height="32" on:click={() => {isOpened=!isOpened}}/>
 </div>
 {#if isOpened}
 <div transition:slide class="drawer navbar-pos">
@@ -45,15 +45,13 @@
     .navbar-button
     {
         z-index: 2 !important;
-        transition: opacity 0.3s, transform 0.3s, filter 0.3s;
-  will-change: transform;
-
+        transition-property: left;
+        transition-duration: 0.2s;
+        transition-timing-function: ease-out;
     }
 
     .drawer-open {
-        transform: translate(20vw);
-        transition: opacity 0.3s, transform 0.3s, filter 0.3s;
-  will-change: transform;
+        left:20%;
     }
 
     .item {
@@ -80,6 +78,8 @@
         display:flex;
         justify-content:flex-start; 
         flex-direction: column; /*This solves everything*/
+        border-right: 1px solid var(--main-color-light);
+        box-shadow: 5px 6px 5px 0px #E0E0E0;
     }
 
     .drawer > .content {
