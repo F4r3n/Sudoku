@@ -14,8 +14,6 @@
             this._data = new Uint8Array(this._SUDOKU_SIZE*this._SUDOKU_SIZE);
         }
 
-
-
         GetGrid() {
             return this._data;
         }
@@ -337,6 +335,7 @@
         box-shadow: 0px 0px 0px 1px var(--main-color-light);
     }
     .bottom-menu {
+        margin-top : 10px;
         height: fit-content;
         display: flex;
         flex-direction: column;

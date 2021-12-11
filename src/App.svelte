@@ -16,8 +16,8 @@
 , {name:"Save", function:() => {sudokuModule.Save()}}
 ]}/>
 
-		<h1>Sudoku!</h1>
-		<div id="sub-title" class="no-printme">For Neha ❤️</div>
+	<h1>Sudoku!</h1>
+	<div id="sub-title">For Neha ❤️</div>
 	<Sudoku bind:SudokuModule={sudokuModule}/>
 
 </main>
@@ -34,20 +34,19 @@
 		margin-left: 15%;
 		margin-top: -10px;
 		margin-bottom: 1%;
-
 	}
 
 
-
-
 	h1 {
-		max-width: 240px;
 		height: fit-content;
-		margin: 0 auto;
+		padding-top: 0;
+		margin: 0 0;
+		width: 100%;
 		text-align: center;
+		justify-content: center;
 		color: var(--main-color);
 		text-transform: uppercase;
-		font-size: 4em;
+		font-size: 3em;
 		font-weight: 100;
 	}
 
