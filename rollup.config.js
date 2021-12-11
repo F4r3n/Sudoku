@@ -74,7 +74,7 @@ export default {
 		rust({
 			verbose: true,
 			serverPath: production ? "./build/" : "./build/",
-			debug:!production
+			debug:false
 		  }),
 	],
 	watch: {

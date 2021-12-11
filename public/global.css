@@ -3,11 +3,18 @@ html, body {
 	width: 100%;
 	height: 100%;
 }
-
 :root {
 	--main-color:#ff3e00;
 	--main-color-light:#ff7243;
+	--border-sudoku--cell-size:1px;
 }
+
+@media print {
+	:root {
+		--border-sudoku--cell-size: 2px !important;
+	}
+}
+
 
 body {
 	color: #333;
@@ -65,4 +72,14 @@ button:not(:disabled):active {
 
 button:focus {
 	border-color: #666;
+}
+
+
+@media print {
+	.no-printme  {
+		display: none;
+	}
+	.printme  {
+		display: block;
+	}
 }

@@ -1,29 +1,38 @@
 <script>
     import { slide } from 'svelte/transition';
+	import {clickOutside} from './clickOutside.js';
 
     export let items;
     export let isOpened = false;
+
+    function handleClickEvent() {
+        if(isOpened) {
+            isOpened = false;
+        }
+    }
 </script>
 
 <svelte:head>
   <link href="https://fonts.googleapis.com/css?family=Raleway" rel="stylesheet">
 </svelte:head>
 
-<div class="navbar-button navbar-pos" class:drawer-open={isOpened}>
-<img src={isOpened ? "close.png" : "./hamburger-navigation-icon-12.png"} alt="menu" width="32" height="32" on:click={() => {isOpened=!isOpened}}/>
+<div class="navbar-button navbar-pos" class:drawer-open={isOpened} on:click={() => {isOpened = true}}>
+<img src="./hamburger-navigation-icon-12.png" alt="menu" width="32" height="32"/>
 </div>
-{#if isOpened}
-<div transition:slide class="drawer navbar-pos">
-    <div class="content">
-        <div class="title">Sudoku!</div>
-        {#each items as item}
-        <div class="item" on:click={item.function}>
-            {item.name}
+<div class="no-printme">
+    {#if isOpened}
+    <div  use:clickOutside  on:click_outside={handleClickEvent} transition:slide class="drawer navbar-pos">
+        <div class="content">
+            <div class="title">Sudoku!</div>
+            {#each items as item}
+            <div class="item" on:click={item.function}>
+                {item.name}
+            </div>
+            {/each}
         </div>
-        {/each}
     </div>
+    {/if}
 </div>
-{/if}
 
 
 <style>
@@ -44,14 +53,15 @@
 
     .navbar-button
     {
+        opacity: 1;
         z-index: 2 !important;
-        transition-property: left;
+        transition-property: opacity;
         transition-duration: 0.2s;
         transition-timing-function: ease-out;
     }
 
     .drawer-open {
-        left:20%;
+        opacity: 0;
     }
 
     .item {
@@ -64,7 +74,7 @@
 
     .item:hover {
         cursor: pointer;
-        background-color: #CCCCCC;
+        background-color: white;
         font-style: italic;
     }
 
@@ -78,7 +88,7 @@
         display:flex;
         justify-content:flex-start; 
         flex-direction: column; /*This solves everything*/
-        border-right: 1px solid var(--main-color-light);
+        border-right: 2px solid var(--main-color-light);
         box-shadow: 5px 6px 5px 0px #E0E0E0;
     }
 

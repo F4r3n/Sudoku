@@ -123,13 +123,14 @@
                 }
             });        
         },
-
-        async Print() {
-
-        },
-
         async Load() {
-
+            navigator.clipboard.readText()
+  .then(text => {
+    console.log('Pasted content: ', text);
+  })
+  .catch(err => {
+    console.error('Failed to read clipboard contents: ', err);
+  });
         },
         async Save() {
 
@@ -140,12 +141,7 @@
     export let sudoku = new Sudoku()
     data = sudoku.GetGrid();
 </script>
-<div class="mainMenu">
-    {#if dev_mode }
-    <button class="button" on:click={print}>Print</button>
-    {/if}
 
-</div>
 
 <svelte:window on:keydown={handleKeydown}/>
 
@@ -163,29 +159,24 @@
         {/each}
     </div>
     
-    <div class="right-menu">
-        <div class="pad">
-            <div class="numpad">
-                {#each [1,2,3,4,5,6,7,8,9] as i}
-                <div class="number border" on:click={() => {setValue(i)}}>{i}</div>
-                {/each}
+    <div class="no-printme">
+        <div class="bottom-menu">
+            <div class="pad">
+                <div class="numpad">
+                    {#each [1,2,3,4,5,6,7,8,9] as i}
+                    <div class="number border" on:click={() => {setValue(i)}}>{i}</div>
+                    {/each}
+                </div>
+                <div class="number noselect" on:click={() => {setValue(0)}}>Clear</div>
+                
             </div>
-
-
-            <div class="number noselect" on:click={() => {setValue(0)}}>Clear</div>
-
-            
         </div>
-        <button class="button noselect" on:click={SudokuModule.Generate}>Generate</button>
-        <button class="button noselect" on:click={SudokuModule.Solve}>Solve</button>
     </div>
-
- 
-
 </div>
 
 
 <style>
+
 
     .noselect {
         -webkit-touch-callout: none; /* iOS Safari */
@@ -201,6 +192,7 @@
         width: fit-content;
         height: fit-content;
         display: flex;
+        flex-direction: column;
         margin: auto;
     }
 
@@ -270,7 +262,7 @@
 	    -moz-box-sizing: border-box;    /* Firefox, other Gecko */
 	    box-sizing: border-box;
     
-        box-shadow: 0px 0px 0px 1px #bdc3c7;
+        box-shadow: 0px 0px 0px var(--border-sudoku--cell-size) #bdc3c7;
   
     }
 
@@ -279,7 +271,6 @@
     .cell:nth-child(3n+1){
         border-left: 2px solid black;
     }
-
     .cell:nth-child(27n+1){
         border-top: 2px solid black;
     }
@@ -313,11 +304,9 @@
         user-select: none;
 
         background-color: black;
-        opacity: 0.9;
         display: grid;
 
-        grid-template-columns: repeat(3, 3em);
-        grid-template-rows: repeat(3, 3em);
+        grid-template-columns: repeat(9, 5em);
 
     }
 
@@ -347,8 +336,7 @@
 	    box-sizing: border-box;
         box-shadow: 0px 0px 0px 1px var(--main-color-light);
     }
-    .right-menu {
-        margin-left: 20px;
+    .bottom-menu {
         height: fit-content;
         display: flex;
         flex-direction: column;
