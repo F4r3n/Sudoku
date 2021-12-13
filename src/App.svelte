@@ -4,23 +4,26 @@
 	import NavBar from "./navbar.svelte";
 	let isNavbarOpened;
 	let sudokuModule;
+
+
+
 </script>
 
 <main>
-	<NavBar bind:isOpened={isNavbarOpened} items={[{name:"Generate", function:() => {sudokuModule.Generate()}}
-, {name:"Solve", function:() => {sudokuModule.Solve()}}
-, {name:"Print", function:() => {
-	window.print()
-}}
-, {name:"Load", function:() => {sudokuModule.Load()}}
-, {name:"Save", function:() => {sudokuModule.Save()}}
-]}/>
+	<NavBar bind:isOpened={isNavbarOpened} items={{"Generate":(inLevel) => {sudokuModule.Generate(inLevel)}
+, "Solve":() => {sudokuModule.Solve()}
+, "Export":() => {window.print()}
+}}/>
 
 	<h1>Sudoku!</h1>
 	<div id="sub-title">For Neha ❤️</div>
 	<Sudoku bind:SudokuModule={sudokuModule}/>
 
 </main>
+
+<svelte:window on:beforeunload={sudokuModule.Save()} 
+			   on:load={sudokuModule.Load()}
+			   ></svelte:window>
 
 <style>
 

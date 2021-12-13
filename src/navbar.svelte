@@ -10,6 +10,8 @@
             isOpened = false;
         }
     }
+
+    let level = 1;
 </script>
 
 <svelte:head>
@@ -24,11 +26,21 @@
     <div  use:clickOutside  on:click_outside={handleClickEvent} transition:slide class="drawer navbar-pos">
         <div class="content">
             <div class="title">Sudoku!</div>
-            {#each items as item}
-            <div class="item" on:click={item.function}>
-                {item.name}
+            
+            <div class="item">
+                <span class="title-section">Generate</span>
+                <div class="subitem">
+                    <label>
+                        Level
+                        <input type="range" min="1" max="4" id="level" bind:value={level}>
+                        <div style="margin-left:15px">{level}</div>
+                    </label>
+                    <div class="button-menu" on:click={() => {items["Generate"](level)}}>Generate</div>
+                </div>
+
             </div>
-            {/each}
+            <div class="item title-section"  on:click={items["Solve"]}>Solve</div>
+            <div class="item title-section"  on:click={items["Export"]}>Export To PDF</div>
         </div>
     </div>
     {/if}
@@ -36,6 +48,39 @@
 
 
 <style>
+
+    .title-section {
+        font-weight:700
+    }
+
+.button-menu {
+        background-color:var(--main-color-light); /* Green */
+        border: none;
+        border-radius: 10%;
+        color: white;
+        padding: 7px 16px;
+        text-align: center;
+        text-decoration: none;
+        font-size: 16px;
+        display: inline-block;
+        margin: 4px 2px;
+        width: fit-content;
+        margin-left: 30%;
+    }
+
+    label { 
+        display: flex 
+    }
+
+    label > input {
+        margin-left: 10px;
+    }
+
+    .subitem {
+        display: flex;
+        flex-direction: column;
+        margin-left: 10%;
+    }
 
     .navbar-pos {
         position: fixed;
@@ -75,11 +120,11 @@
     .item:hover {
         cursor: pointer;
         background-color: white;
-        font-style: italic;
+        font-style:italic;
     }
 
     .drawer {
-        width: 20%;
+        width: 30%;
         height: 100%;
         background-color: whitesmoke;
         display: flex;

@@ -1,5 +1,7 @@
 
- use rand::Rng;
+ use core::num;
+
+use rand::Rng;
 
 use wasm_bindgen::prelude::*;
  extern crate web_sys;
@@ -157,6 +159,7 @@ pub fn solve_sudoku( in_grid : Vec::<u8>, find_unicity : bool)->(bool, Vec::<u8>
                 let possible_values = get_possible_values(pos, &grid,
                      &grid_block[block_number*SUDOKU_SIZE..block_number*SUDOKU_SIZE + SUDOKU_SIZE]);
 
+
                 if possible_values.len() > temp_index_value {
                     let v =  possible_values[temp_index_value] as i16;
                     temp_index_value+=1;
@@ -165,7 +168,6 @@ pub fn solve_sudoku( in_grid : Vec::<u8>, find_unicity : bool)->(bool, Vec::<u8>
                         stack.push((grid.clone(), pos, temp_index_value));
                     }
                     grid[pos] = v as u8;
-
 
                     temp_index_value = 0;
                 }
@@ -180,6 +182,10 @@ pub fn solve_sudoku( in_grid : Vec::<u8>, find_unicity : bool)->(bool, Vec::<u8>
         if is_done {
             number_solutions+=1;
             final_grid = grid.to_vec();
+        }
+
+        if find_unicity && number_solutions > 1 {
+            break;
         }
     }
 
@@ -232,41 +238,53 @@ pub fn generate_random_grid() -> Vec::<u8> {
 
 pub fn generate(in_level : u8) -> Vec<u8> {
 
+    let max_level = 5;
     let mut grid: Vec<u8>;
 
-    //generate a grid
-    loop {
-        let mut rng = rand::thread_rng();
-        let (done, final_grid, _) = solve_sudoku( generate_random_grid(), false);
-        grid = final_grid;
-        let mut changes_number = 0;
-        let mut is_valid = false;
-        if done {
-            while !is_valid {
-                let pos: usize = rng.gen_range(0..SUDOKU_SIZE*SUDOKU_SIZE);
-                if grid[pos] != 0 {
-                    let former_value = grid[pos];
-                    grid[pos] = 0;
-                    let (_, _, is_unique) = solve_sudoku(grid.to_vec(), true);
-                    if !is_unique {
-                        grid[pos] = former_value;
-                    }
-                    else {
-                        changes_number+=1;
-                    }
-                }
+    if in_level < 5 {
+        let number_cases_to_remove = (((in_level as f32/max_level as f32) as f32)*((SUDOKU_SIZE*SUDOKU_SIZE) as f32)) as usize;
 
-                if changes_number > in_level*20 {
-                    is_valid = true;
-                    break;
+    //generate a grid
+        loop {
+            let mut rng = rand::thread_rng();
+            let (done, final_grid, _) = solve_sudoku( generate_random_grid(), false);
+            grid = final_grid;
+            let mut changes_number = 0;
+            let mut is_valid = false;
+            if done {
+                while !is_valid {
+                    let pos: usize = rng.gen_range(0..SUDOKU_SIZE*SUDOKU_SIZE);
+                    if grid[pos] != 0 {
+                        let former_value = grid[pos];
+                        grid[pos] = 0;
+                        let (_, _, is_unique) = solve_sudoku(grid.to_vec(), true);
+                        if !is_unique {
+                            grid[pos] = former_value;
+                        }
+                        else {
+                            changes_number+=1;
+                        }
+                    }
+
+                    if changes_number > number_cases_to_remove {
+                        is_valid = true;
+                        break;
+                    }
                 }
             }
-        }
 
-        if is_valid {
-            break;
+            if is_valid {
+                break;
+            }
         }
     }
+    else
+    {
+        grid = vec![0;SUDOKU_SIZE*SUDOKU_SIZE];
+    }
+
+
+
 
     return grid; 
 }

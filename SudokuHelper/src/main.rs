@@ -20,6 +20,6 @@ fn main() {
     ];
     assert!(grid.len() == 81);
     //let (done, final_grid) = solve_sudoku(grid.to_vec());
-    print!("{:?}", generate(1));
+    print!("{:?}", generate(4));
 
 }

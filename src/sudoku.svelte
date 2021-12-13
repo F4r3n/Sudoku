@@ -30,20 +30,17 @@
 
         Solve(inGrid) {
             return new Promise((resolve, reject) => {
-
                 let v = sudokuHelper.return_named_struct(false);
                 let grid = sudokuHelper.solve_wasm(inGrid, v);
-                console.log(v.is_done)
                 resolve([v.is_done, grid])
 
             });
         }
 
 
-        Generate() {
+        Generate(inLevel) {
             return new Promise((resolve, reject) => {
-
-                let grid = sudokuHelper.generate_wasm(2);
+                let grid = sudokuHelper.generate_wasm(inLevel);
                  resolve(grid)
             }); 
         }
@@ -51,7 +48,6 @@
 
     function displayNumpad(element) {
         currentElementSelected = parseInt(element.target.getAttribute("pos"));
-        console.log(currentElementSelected);
     }
 
     function mouseOver(element) {
@@ -97,19 +93,14 @@
         currentElementHovered=currentElementSelected;
     }
 
-    function print() {
-        console.log(sudoku.GetGrid());
-    }
-
     export const SudokuModule = 
     {
-        async Generate() {
-            sudoku.Generate().then((grid) =>{
+        async Generate(inLevel) {
+            sudoku.Generate(inLevel).then((grid) =>{
                 sudoku.SetGrid(grid);
                 data = sudoku.GetGrid();
             });
         },
-
         async Solve() {
             sudoku.Solve(sudoku.GetGrid()).then(([done, grid]) => {
                 if(done) {
@@ -122,16 +113,14 @@
             });        
         },
         async Load() {
-            navigator.clipboard.readText()
-  .then(text => {
-    console.log('Pasted content: ', text);
-  })
-  .catch(err => {
-    console.error('Failed to read clipboard contents: ', err);
-  });
+            let dataStorage = localStorage.getItem("current_sudoku");
+            if(dataStorage != null) {
+                data = JSON.parse(dataStorage);
+                sudoku.SetGrid(data);
+            }
         },
         async Save() {
-
+            localStorage.setItem("current_sudoku", "[" + data + "]");
         }
     }
 
@@ -194,27 +183,6 @@
         margin: auto;
     }
 
-    .button {
-        background-color:var(--main-color-light); /* Green */
-        border: none;
-        border-radius: 10%;
-        color: white;
-        padding: 7px 16px;
-        text-align: center;
-        text-decoration: none;
-        font-size: 16px;
-        display: inline-block;
-        margin: 4px 2px;
-
-    }
-
-    .mainMenu {
-        justify-content: center;
-        align-items: center;
-        margin: auto;
-        width: fit-content;
-        padding-bottom: 1%;
-    }
     .sudoku_board {
         width: fit-content;
         overflow: hidden;
