@@ -4,7 +4,9 @@
 	import NavBar from "./navbar.svelte";
 	let isNavbarOpened;
 	let sudokuModule;
-	let isOK = -1;
+	let isOK = false;
+	let messageIsON = false;
+
 </script>
 
 <main>
@@ -13,16 +15,14 @@
 , "Export":() => {window.print()}
 , "Check":() => {
 	sudokuModule.Check().then((value) => {
+		window.clearTimeout();
 		isOK = value;
-		console.log("Test", isOK)
-		if(isOK === true) {
-			isOK = 1;
-		}
-		else {
-			isOK = 0;
-		}
+		console.log(isOK);
+
+		messageIsON = true;
+
 		setTimeout(() => {
-			isOK = -1;
+			messageIsON = false;
 		}, 5000);
 	})
 	}
@@ -31,7 +31,9 @@
 
 	<h1>Sudoku!</h1>
 	<div id="sub-title">For Neha ❤️</div>
-		<div class="message" class:message-appear={isOK >= 0}  class:message-not-valid={isOK === 0}>{isOK ? "Sudoku is valid :)" : "Sudoku is not valid ):"}</div>
+		<div class="message" class:message-appear={messageIsON}  
+		class:message-not-valid={!isOK}>
+		{isOK ? "Sudoku is valid :)" : "Sudoku is not valid ):"}</div>
 	<div class="sudokus_container">
 		<Sudoku bind:SudokuModule={sudokuModule}/>
 	</div>
