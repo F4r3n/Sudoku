@@ -297,6 +297,15 @@ pub fn generate_wasm(in_level : u8) -> js_sys::Uint8Array {
 }
 
 #[wasm_bindgen]
+pub fn check_wasm(in_grid : js_sys::Uint8Array) -> bool {
+
+    let grid_block = create_grid_block();
+    let grid = in_grid.to_vec();
+    let probas = build_proabilities_array(&grid, &grid_block);
+    probas.len() == 0
+}
+
+#[wasm_bindgen]
 pub fn solve_wasm(in_grid : js_sys::Uint8Array, exported : &mut ExportedResults) -> js_sys::Uint8Array {
 
     let (done, final_grid, _) = solve_sudoku(in_grid.to_vec(), false);

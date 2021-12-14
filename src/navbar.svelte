@@ -40,6 +40,7 @@
 
             </div>
             <div class="item title-section"  on:click={items["Solve"]}>Solve</div>
+            <div class="item title-section"  on:click={items["Check"]}>Check</div>
             <div class="item title-section"  on:click={items["Export"]}>Export To PDF</div>
         </div>
     </div>

@@ -26,7 +26,12 @@
         SetGrid(inGrid) {
             this._data = inGrid;
         }
-
+        Check() {
+            return new Promise((resolve, reject) => {
+                let isValid = sudokuHelper.check_wasm(this._data);
+                resolve(isValid);
+            });
+        }
 
         Solve(inGrid) {
             return new Promise((resolve, reject) => {
@@ -121,6 +126,9 @@
         },
         async Save() {
             localStorage.setItem("current_sudoku", "[" + data + "]");
+        },
+        Check() {
+            return sudoku.Check();
         }
     }
 
@@ -176,17 +184,11 @@
     }
 
     .container {
-        width: fit-content;
-        height: fit-content;
-        display: flex;
-        flex-direction: column;
-        margin: auto;
+
     }
 
     .sudoku_board {
-        width: fit-content;
-        overflow: hidden;
-  
+        width: fit-content;  
         -webkit-user-select: none;  
         -moz-user-select: none;    
         -ms-user-select: none;      
@@ -201,7 +203,6 @@
         border-left: 2px solid black;
         border-top: 2px solid black;
         border-bottom: 4px solid black;
-
     }
 
 
@@ -213,6 +214,12 @@
     .cell_selected {
         background: var(--main-color-light) !important;
         color:white;
+    }
+    @media print {
+        .cell_selected {
+            background: white !important;
+            color:black;
+        }
     }
 
     .cell {
