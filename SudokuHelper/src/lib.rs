@@ -238,10 +238,10 @@ pub fn generate_random_grid() -> Vec::<u8> {
 
 pub fn generate(in_level : u8) -> Vec<u8> {
 
-    let max_level = 5;
+    let max_level = 10;
     let mut grid: Vec<u8>;
 
-    if in_level < 5 {
+    if in_level < max_level {
         let number_cases_to_remove = (((in_level as f32/max_level as f32) as f32)*((SUDOKU_SIZE*SUDOKU_SIZE) as f32)) as usize;
 
     //generate a grid

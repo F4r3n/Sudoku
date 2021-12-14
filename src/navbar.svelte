@@ -32,7 +32,7 @@
                 <div class="subitem">
                     <label>
                         Level
-                        <input type="range" min="1" max="4" id="level" bind:value={level}>
+                        <input type="range" min="1" max="9" id="level" bind:value={level}>
                         <div style="margin-left:15px">{level}</div>
                     </label>
                     <div class="button-menu" on:click={() => {items["Generate"](level)}}>Generate</div>
