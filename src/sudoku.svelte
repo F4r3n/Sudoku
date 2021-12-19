@@ -210,6 +210,11 @@
     .cell_hover {
         background:rgb(239, 240, 199) !important;
     }
+    @media print {
+        .cell_hover {
+            background: white !important;
+        }
+    }
 
     .cell_selected {
         background: var(--main-color-light) !important;

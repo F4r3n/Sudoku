@@ -1,6 +1,3 @@
-
- use core::num;
-
 use rand::Rng;
 
 use wasm_bindgen::prelude::*;
@@ -95,19 +92,35 @@ pub fn return_named_struct(is_done: bool) -> ExportedResults {
     ExportedResults { is_done }
 }
 
-pub fn build_proabilities_array(in_grid : &Vec::<u8>, in_grid_block : &Vec::<usize>) -> Vec::<(usize, Vec::<u8>)> {
+pub fn build_proabilities_array(in_grid : &Vec::<u8>, in_grid_block : &Vec::<usize>, in_check: bool) -> Vec::<(usize, Vec::<u8>)> {
     let mut probas = Vec::<(usize, Vec::<u8>)>::new();
     for index in 0..SUDOKU_SIZE*SUDOKU_SIZE {
-        if in_grid[index] == 0 {
+        if in_check || in_grid[index] == 0 {
             let block_number = get_block_number(index);
             let proba = (index, get_possible_values(index, in_grid, 
                 &in_grid_block[block_number*SUDOKU_SIZE..block_number*SUDOKU_SIZE + SUDOKU_SIZE]));
             probas.push(proba);
         }
     }
+    probas.retain(|x| x.1.len() > 0);
     probas.sort_by(| a, b| a.1.len().cmp(&b.1.len()));
 
     return probas;
+}
+
+pub fn get_first_proba(in_grid : &Vec::<u8>, in_grid_block : &Vec::<usize>) -> Option<(usize, Vec::<u8>)> {
+    for index in 0..SUDOKU_SIZE*SUDOKU_SIZE {
+        if in_grid[index] == 0 {
+            let block_number = get_block_number(index);
+            let proba_cell = (index, get_possible_values(index, in_grid, 
+                &in_grid_block[block_number*SUDOKU_SIZE..block_number*SUDOKU_SIZE + SUDOKU_SIZE]));
+            if proba_cell.1.len() == 1 {
+                return Some(proba_cell);
+            }
+        }
+    }
+
+    return None;
 }
 
 pub fn get_possible_values_from_pos(in_pos : usize, in_grid : &Vec::<u8>, in_grid_block : &Vec::<usize>) -> Vec::<u8> {
@@ -151,6 +164,7 @@ pub fn solve_sudoku( in_grid : Vec::<u8>, find_unicity : bool)->(bool, Vec::<u8>
         let (mut grid,start,index_value) = stack.pop().unwrap();
         let mut temp_index_value = index_value;
         let mut i : usize = start;
+
 
         for pos in start..grid.len() {
             if grid[pos] == 0 {
@@ -301,7 +315,7 @@ pub fn check_wasm(in_grid : js_sys::Uint8Array) -> bool {
 
     let grid_block = create_grid_block();
     let grid = in_grid.to_vec();
-    let probas = build_proabilities_array(&grid, &grid_block);
+    let probas = build_proabilities_array(&grid, &grid_block, true);
     probas.len() == 0
 }
 

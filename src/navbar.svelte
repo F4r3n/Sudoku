@@ -115,7 +115,7 @@
         font-family: Raleway;
         font-size: x-large;
         margin-top: 15px;
-        padding-left: 32px;
+        padding-left: 5%;
     }
 
     .item:hover {
@@ -126,6 +126,7 @@
 
     .drawer {
         width: 30%;
+        min-width: 300px;
         height: 100%;
         background-color: whitesmoke;
         display: flex;
