@@ -266,8 +266,15 @@ pub fn generate(in_level : u8) -> Vec<u8> {
             let mut changes_number = 0;
             let mut is_valid = false;
             if done {
-                while !is_valid {
-                    let pos: usize = rng.gen_range(0..SUDOKU_SIZE*SUDOKU_SIZE);
+                let mut positions_to_use = vec![0; SUDOKU_SIZE*SUDOKU_SIZE];
+                
+                for i in 0..positions_to_use.len() {
+                    positions_to_use[i] = i;
+                }
+                while !is_valid && !positions_to_use.is_empty() {
+                    let random_pos: usize = rng.gen_range(0..positions_to_use.len());
+                    let pos = positions_to_use[random_pos];
+                    positions_to_use.remove(random_pos);
                     if grid[pos] != 0 {
                         let former_value = grid[pos];
                         grid[pos] = 0;
