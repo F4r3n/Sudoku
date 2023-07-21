@@ -17,8 +17,6 @@
 	sudokuModule.Check().then((value) => {
 		window.clearTimeout();
 		isOK = value;
-		console.log(isOK);
-
 		messageIsON = true;
 
 		setTimeout(() => {
@@ -74,10 +72,9 @@
 	}
 
 	.sudokus_container {
-		margin-left: auto;
-		margin-right: auto;
-		width:fit-content;
-		height: fit-content;
+		display: block;
+		margin: 0 auto;
+		min-width: max-content;
 	}
 
 	#sub-title {
@@ -101,7 +98,7 @@
 		justify-content: center;
 		color: var(--main-color);
 		text-transform: uppercase;
-		font-size: 3em;
+		font-size: xx-large;
 		font-weight: 100;
 	}
 

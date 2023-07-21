@@ -1,17 +1,16 @@
 <script>
-    import wasm from '../SudokuHelper/Cargo.toml';
+    import wasm from "../SudokuHelper/Cargo.toml";
 
     let dev_mode = false;
     export let currentElementHovered = -1;
     export let currentElementSelected = -1;
     export let data;
 
-    let sudokuHelper = null
+    let sudokuHelper = null;
     class Sudoku {
-
         constructor() {
-            this._SUDOKU_SIZE=9;
-            this._data = new Uint8Array(this._SUDOKU_SIZE*this._SUDOKU_SIZE);
+            this._SUDOKU_SIZE = 9;
+            this._data = new Uint8Array(this._SUDOKU_SIZE * this._SUDOKU_SIZE);
         }
 
         GetGrid() {
@@ -19,8 +18,7 @@
         }
 
         Reset() {
-            for(let i = 0; i < this._data.length; ++i) 
-                this._data[i] = 0;
+            for (let i = 0; i < this._data.length; ++i) this._data[i] = 0;
         }
 
         SetGrid(inGrid) {
@@ -37,19 +35,17 @@
             return new Promise((resolve, reject) => {
                 let v = sudokuHelper.return_named_struct(false);
                 let grid = sudokuHelper.solve_wasm(inGrid, v);
-                resolve([v.is_done, grid])
-
+                resolve([v.is_done, grid]);
             });
         }
-
 
         Generate(inLevel) {
             return new Promise((resolve, reject) => {
                 let grid = sudokuHelper.generate_wasm(inLevel);
-                 resolve(grid)
-            }); 
+                resolve(grid);
+            });
         }
-    };
+    }
 
     function displayNumpad(element) {
         currentElementSelected = parseInt(element.target.getAttribute("pos"));
@@ -59,15 +55,13 @@
         currentElementHovered = element.target.getAttribute("pos");
     }
 
-
-
     async function Init() {
         sudokuHelper = await wasm();
     }
 
     function setValue(inV) {
-        if(currentElementSelected >= 0 && currentElementSelected < 81) {
-            sudoku.GetGrid()[currentElementSelected] = inV
+        if (currentElementSelected >= 0 && currentElementSelected < 81) {
+            sudoku.GetGrid()[currentElementSelected] = inV;
             data = sudoku.GetGrid();
         }
     }
@@ -78,48 +72,63 @@
         const key = event.key;
         switch (key) {
             case "ArrowDown":
-                currentElementSelected=clamp(currentElementSelected+9, 0, 80);
+                currentElementSelected = clamp(
+                    currentElementSelected + 9,
+                    0,
+                    80
+                );
                 break;
             case "ArrowRight":
-                currentElementSelected=clamp(currentElementSelected + 1, 0, 80);
+                currentElementSelected = clamp(
+                    currentElementSelected + 1,
+                    0,
+                    80
+                );
                 break;
             case "ArrowLeft":
-                currentElementSelected=clamp(currentElementSelected-1, 0, 80);
-            break;
+                currentElementSelected = clamp(
+                    currentElementSelected - 1,
+                    0,
+                    80
+                );
+                break;
             case "ArrowUp":
-                currentElementSelected=clamp(currentElementSelected-9, 0, 80);
-            break;
+                currentElementSelected = clamp(
+                    currentElementSelected - 9,
+                    0,
+                    80
+                );
+                break;
             default:
-                if(key >= 0 && key <=9) {
+                if (key >= 0 && key <= 9) {
                     setValue(key);
                 }
                 break;
         }
-        currentElementHovered=currentElementSelected;
+        currentElementHovered = currentElementSelected;
     }
 
-    export const SudokuModule = 
-    {
+    export const SudokuModule = {
         async Generate(inLevel) {
-            sudoku.Generate(inLevel).then((grid) =>{
+            sudoku.Generate(inLevel).then((grid) => {
                 sudoku.SetGrid(grid);
                 data = sudoku.GetGrid();
             });
         },
         async Solve() {
             sudoku.Solve(sudoku.GetGrid()).then(([done, grid]) => {
-                if(done) {
+                if (done) {
                     sudoku.SetGrid(grid);
                     data = sudoku.GetGrid();
+                } else {
+                    console.log("No solution");
                 }
-                else {
-                    console.log("No solution")
-                }
-            });        
+            });
         },
         async Load() {
+            console.log("load")
             let dataStorage = localStorage.getItem("current_sudoku");
-            if(dataStorage != null) {
+            if (dataStorage != null) {
                 data = JSON.parse(dataStorage);
                 sudoku.SetGrid(data);
             }
@@ -129,50 +138,71 @@
         },
         Check() {
             return sudoku.Check();
-        }
-    }
+        },
+    };
 
     Init();
-    export let sudoku = new Sudoku()
+    export let sudoku = new Sudoku();
     data = sudoku.GetGrid();
 </script>
 
-
-<svelte:window on:keydown={handleKeydown}/>
-
-<div class="container">
-    <div class="sudoku_board">
-        {#each data as block, i}
-        <div class="{currentElementHovered==i 
-        || ((parseInt(i/3)%3 == parseInt(currentElementHovered/3)%3) && parseInt(i/27) == parseInt(currentElementHovered/27))
-        || i%9 == currentElementHovered%9
-        || parseInt(i/9, 10) == parseInt(currentElementHovered/9,10) ? 'cell cell_hover' : 'cell'}" 
-        class:cell_selected="{currentElementSelected==i}"
-        pos={i} on:click={displayNumpad} on:mouseover={mouseOver} bind:this={currentElementHovered}>
-            {block == 0 ? '' :  block}
+<svelte:window on:keydown={handleKeydown} />
+<main>
+    <div class="container">
+        <div class="sudoku_board">
+            {#each data as block, i}
+                <div
+                    class={currentElementHovered == i ||
+                    (parseInt(i / 3) % 3 ==
+                        parseInt(currentElementHovered / 3) % 3 &&
+                        parseInt(i / 27) ==
+                            parseInt(currentElementHovered / 27)) ||
+                    i % 9 == currentElementHovered % 9 ||
+                    parseInt(i / 9, 10) ==
+                        parseInt(currentElementHovered / 9, 10)
+                        ? "cell cell_hover"
+                        : "cell"}
+                    class:cell_selected={currentElementSelected == i}
+                    pos={i}
+                    on:click={displayNumpad}
+                    on:mouseover={mouseOver}
+                    bind:this={currentElementHovered}
+                >
+                    {block == 0 ? "" : block}
+                </div>
+            {/each}
         </div>
-        {/each}
     </div>
-    
+
     <div class="no-printme">
         <div class="bottom-menu">
             <div class="pad">
                 <div class="numpad">
-                    {#each [1,2,3,4,5,6,7,8,9] as i}
-                    <div class="number border" on:click={() => {setValue(i)}}>{i}</div>
+                    {#each [1, 2, 3, 4, 5, 6, 7, 8, 9] as i}
+                        <div
+                            class="number border"
+                            on:click={() => {
+                                setValue(i);
+                            }}
+                        >
+                            {i}
+                        </div>
                     {/each}
                 </div>
-                <div class="number noselect" on:click={() => {setValue(0)}}>Clear</div>
-                
+                <div
+                    class="number noselect"
+                    on:click={() => {
+                        setValue(0);
+                    }}
+                >
+                    Clear
+                </div>
             </div>
         </div>
     </div>
-</div>
-
+</main>
 
 <style>
-
-
     .noselect {
         -webkit-touch-callout: none; /* iOS Safari */
         -webkit-user-select: none; /* Safari */
@@ -184,31 +214,60 @@
     }
 
     .container {
-
+        margin: 0 auto;
     }
 
     .sudoku_board {
-        width: fit-content;  
-        -webkit-user-select: none;  
-        -moz-user-select: none;    
-        -ms-user-select: none;      
+        width: fit-content;
+        height: fit-content;
+        margin: 0 auto;
+
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
         user-select: none;
-  
+
         box-shadow: 0px 0px 5px 5px #bdc3c7;
 
         display: grid;
-        grid-template-columns: repeat(9, 5em);
-        grid-template-rows: repeat(9, 5em);
+        grid-template-columns: repeat(9, 3rem);
+        grid-template-rows: repeat(9, 3rem);
         border-right: 4px solid black;
         border-left: 2px solid black;
         border-top: 2px solid black;
         border-bottom: 4px solid black;
     }
 
+    .numpad {
+        height: fit-content;
+        width: fit-content;
+        overflow: hidden;
 
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+
+        background-color: black;
+        display: grid;
+
+        grid-template-columns: repeat(9, 5em);
+    }
+
+    @media screen and (max-width: 600px) {
+        /* CSS for screens that are 320 pixels or less will be put in this section */
+        .sudoku_board {
+            grid-template-columns: repeat(9, 40px);
+            grid-template-rows: repeat(9, 40px);
+        }
+
+        .numpad {
+            grid-template-columns: repeat(9, 40px);
+        }
+    }
 
     .cell_hover {
-        background:rgb(239, 240, 199) !important;
+        background: rgb(239, 240, 199) !important;
     }
     @media print {
         .cell_hover {
@@ -218,12 +277,12 @@
 
     .cell_selected {
         background: var(--main-color-light) !important;
-        color:white;
+        color: white;
     }
     @media print {
         .cell_selected {
             background: white !important;
-            color:black;
+            color: black;
         }
     }
 
@@ -232,73 +291,61 @@
         align-items: center;
         display: flex;
         font-family: Arial;
-        font-size: 3rem;
+        font-size: xx-large;
         font-weight: bold;
-        background:white;
+        background: white;
 
         -webkit-box-sizing: border-box; /* Safari/Chrome, other WebKit */
-	    -moz-box-sizing: border-box;    /* Firefox, other Gecko */
-	    box-sizing: border-box;
-    
+        -moz-box-sizing: border-box; /* Firefox, other Gecko */
+        box-sizing: border-box;
+
         box-shadow: 0px 0px 0px var(--border-sudoku--cell-size) #bdc3c7;
-  
     }
 
-
-
-    .cell:nth-child(3n+1){
+    .cell:nth-child(3n + 1) {
         border-left: 2px solid black;
     }
-    .cell:nth-child(27n+1){
+    .cell:nth-child(27n + 1) {
         border-top: 2px solid black;
     }
-    .cell:nth-child(27n+2){
-        border-top: 2px solid black;
-    }    .cell:nth-child(27n+3){
-        border-top: 2px solid black;
-    }    .cell:nth-child(27n+4){
-        border-top: 2px solid black;
-    }    .cell:nth-child(27n+5){
-        border-top: 2px solid black;
-    }    .cell:nth-child(27n+6){
-        border-top: 2px solid black;
-    }    .cell:nth-child(27n+7){
+    .cell:nth-child(27n + 2) {
         border-top: 2px solid black;
     }
-    .cell:nth-child(27n+8){
-        border-top: 2px solid black;
-    }.cell:nth-child(27n+9){
+    .cell:nth-child(27n + 3) {
         border-top: 2px solid black;
     }
-
-    .numpad {
-        height: fit-content;
-        width: fit-content;
-        overflow: hidden;
-  
-        -webkit-user-select: none;  
-        -moz-user-select: none;    
-        -ms-user-select: none;      
-        user-select: none;
-
-        background-color: black;
-        display: grid;
-
-        grid-template-columns: repeat(9, 5em);
-
+    .cell:nth-child(27n + 4) {
+        border-top: 2px solid black;
+    }
+    .cell:nth-child(27n + 5) {
+        border-top: 2px solid black;
+    }
+    .cell:nth-child(27n + 6) {
+        border-top: 2px solid black;
+    }
+    .cell:nth-child(27n + 7) {
+        border-top: 2px solid black;
+    }
+    .cell:nth-child(27n + 8) {
+        border-top: 2px solid black;
+    }
+    .cell:nth-child(27n + 9) {
+        border-top: 2px solid black;
     }
 
     .number {
         text-align: center;
-        font-size: xx-large;
-        opacity: 1.0;
+        font-size: x-large;
+        opacity: 1;
         background: white;
         justify-content: center;
         align-items: center;
-        color:var(--main-color-light);
+        color: var(--main-color-light);
     }
 
     .pad {
+        margin: 0 auto;
+
         justify-content: center;
         border: 2px solid var(--main-color-light);
         border-radius: 5%;
@@ -308,14 +355,14 @@
         margin-bottom: 10px;
     }
 
-    .border{
+    .border {
         -webkit-box-sizing: border-box; /* Safari/Chrome, other WebKit */
-	    -moz-box-sizing: border-box;    /* Firefox, other Gecko */
-	    box-sizing: border-box;
+        -moz-box-sizing: border-box; /* Firefox, other Gecko */
+        box-sizing: border-box;
         box-shadow: 0px 0px 0px 1px var(--main-color-light);
     }
     .bottom-menu {
-        margin-top : 10px;
+        margin-top: 10px;
         height: fit-content;
         display: flex;
         flex-direction: column;
