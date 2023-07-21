@@ -109,6 +109,7 @@
     }
 
     .button {
+        width: 10px;
         padding-top: 5px;
     }
 
