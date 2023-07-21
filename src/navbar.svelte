@@ -1,7 +1,7 @@
 <script>
     import { slide } from "svelte/transition";
     import { clickOutside } from "./clickOutside.js";
-
+    import Arrow from "./arrow.svelte";
     export let items;
     export let isOpened = false;
 
@@ -12,6 +12,8 @@
     }
 
     let level = 1;
+
+    const clamp = (num, min, max) => Math.min(Math.max(num, min), max);
 </script>
 
 <svelte:head>
@@ -49,17 +51,33 @@
                 <div class="item">
                     <span class="title-section">Generate</span>
                     <div class="subitem">
+                        <div class="middle">Level</div>
+
                         <div class="select">
-                            <div class="middle">Level</div>
-                            <input
-                                type="range"
-                                min="1"
-                                max="9"
-                                id="level"
-                                bind:value={level}
-                            />
+                            <div
+                                class="reverse button"
+                                on:click={() => {
+                                    level--;
+                                    console.log(level)
+                                    if (level < 1) level = 1;
+                                }}
+                            >
+                                <Arrow />
+                            </div>
+                            <div class="level">{level}</div>
+
+                            <div
+                                class="translate button"
+                                on:click={() => {
+                                    level++;
+                                    console.log(level)
+
+                                    if (level > 9) level = 9;
+                                }}
+                            >
+                                <Arrow />
+                            </div>
                         </div>
-                        <div style="margin-left:15px">{level}</div>
 
                         <div
                             class="button-menu"
@@ -90,6 +108,20 @@
         font-weight: 700;
     }
 
+    .button {
+        padding-top: 5px;
+    }
+
+    .button:hover {
+        cursor: pointer;
+        color:chocolate;
+    }
+
+    .reverse {
+        transform: scaleX(-1);
+    }
+
+
     .button-menu {
         background-color: var(--main-color-light); /* Green */
         border: none;
@@ -108,7 +140,15 @@
     .select {
         display: flex;
         flex-direction: row;
-        align-items: baseline;
+        gap: 5px;
+        align-items: center;
+        line-height: 28px;
+    }
+
+    .level {
+        align-items: center;
+        text-align: center;
+        font-family: monospace;
     }
 
     .subitem {
@@ -163,7 +203,7 @@
     }
 
     .drawer {
-        max-width: 30%;
+        max-width: fit-content;
         height: 100%;
         background-color: whitesmoke;
         display: flex;
