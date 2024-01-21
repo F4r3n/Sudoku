@@ -11,9 +11,8 @@
         }
     }
 
-    let level = 1;
-
-    const clamp = (num, min, max) => Math.min(Math.max(num, min), max);
+    let level = 4;
+    let isDevMode = false
 </script>
 
 <svelte:head>
@@ -98,6 +97,14 @@
                 <div class="item title-section" on:click={items["Export"]}>
                     Export To PDF
                 </div>
+                {#if isDevMode}
+                <div class="item title-section" on:click={items["Save"]}>
+                    Save
+                </div>
+                <div class="item title-section" on:click={items["Load"]}>
+                    Load
+                </div>
+                {/if}
             </div>
         </div>
     {/if}

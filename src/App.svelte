@@ -13,6 +13,8 @@
 	<NavBar bind:isOpened={isNavbarOpened} items={{"Generate":(inLevel) => {sudokuModule.Generate(inLevel)}
 , "Solve":() => {sudokuModule.Solve()}
 , "Export":() => {window.print()}
+, "Save":() => {sudokuModule.Save()}
+, "Load":() => {sudokuModule.Load()}
 , "Check":() => {
 	sudokuModule.Check().then((value) => {
 		window.clearTimeout();

@@ -5,24 +5,84 @@
     export let currentElementHovered = -1;
     export let currentElementSelected = -1;
     export let data;
+    let metaData;
 
     let sudokuHelper = null;
+    class MetaData {
+        constructor(value) {
+            this._v = value;
+        }
+
+        HasData() {
+            return this._v !=0
+        }
+
+        parse(object) {
+            this._v = object._v;
+        }
+    }
+
+    class Meta {
+
+        constructor(inSize) {
+            this._meta = new Array(inSize)
+        }
+
+        InitWithGrid(grid) {
+            for(let i = 0; i < grid.length; ++i) {
+                this._meta[i] = new MetaData(grid[i])
+            }
+        }
+
+        Load(dataMeta) {
+            const array = dataMeta.array
+            if(array) {
+                for(let i = 0; i < array.length; ++i) {
+                    let d = new MetaData(0)
+                    d.parse(array[i])
+                    this._meta[i] = d
+                }
+            }
+        }
+
+        Stringify() {
+            return JSON.stringify({array:this._meta})
+        }
+
+        HasData(index) {
+            if(this._meta[index])
+                return this._meta[index].HasData();
+            return false;
+        }
+        
+    }
+
     class Sudoku {
+
+
         constructor() {
             this._SUDOKU_SIZE = 9;
             this._data = new Uint8Array(this._SUDOKU_SIZE * this._SUDOKU_SIZE);
+            this._metaDatas = null;
         }
 
         GetGrid() {
             return this._data;
         }
 
+        GetMetaData() {
+            return this._metaDatas;
+        }
+
         Reset() {
             for (let i = 0; i < this._data.length; ++i) this._data[i] = 0;
         }
 
-        SetGrid(inGrid) {
+        SetGrid(inGrid, inMetaData) {
             this._data = inGrid;
+            if(inMetaData) {
+                this._metaDatas = inMetaData;
+            }
         }
         Check() {
             return new Promise((resolve, reject) => {
@@ -42,8 +102,34 @@
         Generate(inLevel) {
             return new Promise((resolve, reject) => {
                 let grid = sudokuHelper.generate_wasm(inLevel);
-                resolve(grid);
+                let metadatas = new Meta(grid.length)
+                metadatas.InitWithGrid(grid)
+                
+                resolve([grid, metadatas]);
             });
+        }
+
+        Load() {
+            const dataStorage = localStorage.getItem("current_sudoku");
+            const dataStorageMeta = localStorage.getItem("current_sudoku_meta");
+
+            if (dataStorage != null) {
+                const data = JSON.parse(dataStorage);
+                let newMeta = null;
+                const dataMeta = dataStorageMeta != null ? JSON.parse(dataStorageMeta) : null;
+
+                if(dataMeta) {
+                    newMeta = new Meta(data.length)
+                    newMeta.Load(dataMeta)
+                }
+                sudoku.SetGrid(data, newMeta);
+            }
+        }
+
+        Save() {
+            localStorage.setItem("current_sudoku", "[" + this._data + "]");
+            const d = this._metaDatas.Stringify()
+            localStorage.setItem("current_sudoku_meta", d);
         }
     }
 
@@ -61,6 +147,9 @@
 
     function setValue(inV) {
         if (currentElementSelected >= 0 && currentElementSelected < 81) {
+            if(metaData != null && metaData.HasData(currentElementSelected)) {
+                return;
+            }
             sudoku.GetGrid()[currentElementSelected] = inV;
             data = sudoku.GetGrid();
         }
@@ -110,9 +199,10 @@
 
     export const SudokuModule = {
         async Generate(inLevel) {
-            sudoku.Generate(inLevel).then((grid) => {
-                sudoku.SetGrid(grid);
+            sudoku.Generate(inLevel).then(grid => {
+                sudoku.SetGrid(grid[0], grid[1]);
                 data = sudoku.GetGrid();
+                metaData = sudoku.GetMetaData();
             });
         },
         async Solve() {
@@ -125,16 +215,13 @@
                 }
             });
         },
-        async Load() {
-            console.log("load")
-            let dataStorage = localStorage.getItem("current_sudoku");
-            if (dataStorage != null) {
-                data = JSON.parse(dataStorage);
-                sudoku.SetGrid(data);
-            }
+        Load() {
+            sudoku.Load();
+            data = sudoku.GetGrid();
+            metaData = sudoku.GetMetaData();
         },
-        async Save() {
-            localStorage.setItem("current_sudoku", "[" + data + "]");
+        Save() {
+            return sudoku.Save();
         },
         Check() {
             return sudoku.Check();
@@ -144,25 +231,28 @@
     Init();
     export let sudoku = new Sudoku();
     data = sudoku.GetGrid();
+    metaData = sudoku.GetMetaData();
 </script>
+                    <!-- class:cell_const={metaData != null && metaData[i].HasData()} -->
 
 <svelte:window on:keydown={handleKeydown} />
 <main>
     <div class="container">
         <div class="sudoku_board">
             {#each data as block, i}
+                <!-- svelte-ignore a11y-mouse-events-have-key-events -->
                 <div
                     class={currentElementHovered == i ||
-                    (parseInt(i / 3) % 3 ==
+                    ((parseInt(i / 3) % 3 ==
                         parseInt(currentElementHovered / 3) % 3 &&
                         parseInt(i / 27) ==
-                            parseInt(currentElementHovered / 27)) ||
-                    i % 9 == currentElementHovered % 9 ||
-                    parseInt(i / 9, 10) ==
-                        parseInt(currentElementHovered / 9, 10)
-                        ? "cell cell_hover"
-                        : "cell"}
+                            parseInt(currentElementHovered / 27)) 
+                    || i % 9 == currentElementHovered % 9 
+                    || parseInt(i / 9, 10) == parseInt(currentElementHovered / 9, 10))
+                    ? "cell cell_hover"
+                    : "cell"}
                     class:cell_selected={currentElementSelected == i}
+                    class:cell_active={metaData != null && !metaData.HasData(i)}
                     pos={i}
                     on:click={displayNumpad}
                     on:mouseover={mouseOver}
@@ -264,6 +354,10 @@
         .numpad {
             grid-template-columns: repeat(9, 40px);
         }
+    }
+
+    .cell_active {
+        color: var(--main-color-light);
     }
 
     .cell_hover {
